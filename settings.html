@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Settings — Coastline Auto Tech</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --navy-deep:#0B2436; --navy-mid:#123249; --steel:#54727F;
+    --paper:#EDE7D8; --paper-line:#D8CFB8; --card:#F6F2E7;
+    --ink:#182228; --ink-soft:#4A5860;
+    --orange:#E4590A; --orange-dark:#B8430A;
+    --ok:#2F6B4F; --warn:#AE3226; --radius:2px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;}
+
+  header.top{background:linear-gradient(180deg,var(--navy-deep) 0%, var(--navy-mid) 100%);padding:18px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:relative;}
+  header.top::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg, transparent, rgba(228,89,10,.85), transparent);}
+  .wordmark{font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#F4EFE2;font-size:14px;}
+  .wordmark span{color:var(--orange);}
+  .top-right{display:flex;align-items:center;gap:10px;}
+  .navlink{font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#F4EFE2;text-decoration:none;border:1px solid var(--steel);padding:7px 14px;border-radius:var(--radius);background:transparent;cursor:pointer;}
+  .navlink:hover{border-color:var(--orange);color:var(--orange);}
+
+  #loginScreen{max-width:380px;margin:80px auto;padding:0 20px;}
+  .login-card{background:var(--card);border:1px solid var(--paper-line);border-radius:var(--radius);padding:28px 26px;box-shadow:0 18px 40px -18px rgba(11,36,54,.35);}
+  .login-card h1{font-family:'Oswald',sans-serif;font-size:20px;font-weight:600;margin:0 0 4px;color:var(--navy-deep);}
+  .login-card p{font-size:13px;color:var(--ink-soft);margin:0 0 20px;}
+
+  label{display:block;font-size:12.5px;font-weight:500;color:var(--ink-soft);margin-bottom:14px;}
+  input,select{display:block;width:100%;margin-top:6px;padding:9px 10px;background:#FFFDF8;border:1px solid var(--paper-line);border-radius:var(--radius);font-family:'Inter',sans-serif;font-size:14px;color:var(--ink);}
+  input:focus,select:focus{outline:2px solid var(--orange);outline-offset:1px;border-color:var(--orange);}
+
+  .stamp{font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.08em;text-transform:uppercase;font-size:13.5px;color:#fff;background:var(--orange);border:2px solid var(--orange);border-radius:var(--radius);padding:10px 18px;cursor:pointer;}
+  .stamp:hover{background:var(--orange-dark);border-color:var(--orange-dark);}
+  .stamp.ghost{background:transparent;color:var(--ink-soft);border-color:var(--paper-line);}
+  .stamp.ghost:hover{border-color:var(--steel);color:var(--ink);}
+  .stamp.block{width:100%;}
+
+  .msg{margin-top:14px;padding:11px 13px;border-radius:var(--radius);font-size:13px;display:none;}
+  .msg.show{display:block;}
+  .msg.err{background:rgba(174,50,38,.1);color:var(--warn);border:1px solid rgba(174,50,38,.35);}
+  .msg.ok{background:rgba(47,107,79,.1);color:var(--ok);border:1px solid rgba(47,107,79,.35);}
+
+  #dashboard{display:none;max-width:820px;margin:0 auto;padding:30px 20px 60px;}
+
+  .tabs{display:flex;gap:8px;margin-bottom:20px;}
+  .tabs button{flex:1;font-family:'Oswald',sans-serif;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;padding:11px;border:1px solid var(--paper-line);background:var(--card);color:var(--ink-soft);cursor:pointer;border-radius:var(--radius);}
+  .tabs button.active{background:var(--navy-mid);border-color:var(--navy-mid);color:#fff;}
+
+  .panel{display:none;}
+  .panel.active{display:block;}
+
+  .docket{background:var(--card);border:1px solid var(--paper-line);border-radius:var(--radius);margin-bottom:20px;box-shadow:0 18px 40px -18px rgba(11,36,54,.3);}
+  .section-title{font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--navy-deep);padding:16px 22px 10px;}
+
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{text-align:left;font-family:'Oswald',sans-serif;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft);padding:6px 22px;border-bottom:1px dotted var(--paper-line);}
+  td{padding:9px 22px;border-bottom:1px dotted var(--paper-line);}
+  td.num{font-family:'IBM Plex Mono',monospace;text-align:right;}
+  .rowbtns{display:flex;gap:10px;}
+  .rowbtns button{background:none;border:none;cursor:pointer;font-size:12px;text-decoration:underline;padding:0;}
+  .edit-btn{color:var(--steel);}
+  .del-btn{color:var(--warn);}
+
+  .add-form{padding:16px 22px 22px;border-top:1px dashed var(--paper-line);}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+  .form-actions{display:flex;gap:10px;}
+  .form-actions .stamp{flex:1;}
+
+  @media (max-width:560px){ .row3{grid-template-columns:1fr;} .row2{grid-template-columns:1fr;} table{font-size:12px;} th,td{padding:8px 12px;} }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wordmark">Coastline <span>Auto</span> Tech — Settings</div>
+  <div class="top-right" id="topRight" style="display:none">
+    <a class="navlink" href="internal.html">Dashboard</a>
+    <button class="navlink" id="logoutBtn">Log out</button>
+  </div>
+</header>
+
+<section id="loginScreen">
+  <div class="login-card">
+    <h1>Staff login</h1>
+    <p>For workshop use only.</p>
+    <form id="loginForm">
+      <label>Email<input required type="email" id="email" autocomplete="username" /></label>
+      <label>Password<input required type="password" id="password" autocomplete="current-password" /></label>
+      <button type="submit" class="stamp block" id="loginBtn">Log in</button>
+      <div class="msg" id="loginMsg"></div>
+    </form>
+  </div>
+</section>
+
+<main id="dashboard">
+  <div class="tabs">
+    <button data-tab="parts" class="active">Parts</button>
+    <button data-tab="services">Services</button>
+    <button data-tab="rates">Hourly rates</button>
+  </div>
+
+  <!-- ===== PARTS ===== -->
+  <div class="panel active" id="panel-parts">
+    <div class="docket">
+      <h3 class="section-title">Parts inventory</h3>
+      <table>
+        <thead><tr><th>Name</th><th>Code</th><th class="num">Cost</th><th class="num">Sell</th><th>Supplier</th><th class="num">Stock</th><th></th></tr></thead>
+        <tbody id="partsBody"></tbody>
+      </table>
+      <div class="add-form">
+        <h3 class="section-title" style="padding:0 0 12px" id="partFormTitle">Add new part</h3>
+        <label>Name<input id="p_name" /></label>
+        <div class="row3">
+          <label>Code<input id="p_code" /></label>
+          <label>Cost price ($)<input id="p_cost" type="number" step="0.01" /></label>
+          <label>Sell price ($)<input id="p_sell" type="number" step="0.01" /></label>
+        </div>
+        <div class="row3">
+          <label>Supplier<input id="p_supplier" /></label>
+          <label>Quantity in stock<input id="p_qty" type="number" value="0" /></label>
+          <label>Min stock alert<input id="p_min" type="number" value="5" /></label>
+        </div>
+        <div class="form-actions">
+          <button class="stamp" id="p_save">Save part</button>
+          <button class="stamp ghost" id="p_cancel" style="display:none">Cancel edit</button>
+        </div>
+        <div class="msg" id="p_msg"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SERVICES ===== -->
+  <div class="panel" id="panel-services">
+    <div class="docket">
+      <h3 class="section-title">Service list</h3>
+      <table>
+        <thead><tr><th>Name</th><th>Code</th><th class="num">Base price</th><th class="num">Est. hrs</th><th>Category</th><th></th></tr></thead>
+        <tbody id="servicesBody"></tbody>
+      </table>
+      <div class="add-form">
+        <h3 class="section-title" style="padding:0 0 12px" id="svcFormTitle">Add new service</h3>
+        <label>Name<input id="s_name" /></label>
+        <div class="row3">
+          <label>Code<input id="s_code" /></label>
+          <label>Base price ($)<input id="s_price" type="number" step="0.01" /></label>
+          <label>Estimated hours<input id="s_hours" type="number" step="0.25" /></label>
+        </div>
+        <label>Category<input id="s_category" /></label>
+        <div class="form-actions">
+          <button class="stamp" id="s_save">Save service</button>
+          <button class="stamp ghost" id="s_cancel" style="display:none">Cancel edit</button>
+        </div>
+        <div class="msg" id="s_msg"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== RATES ===== -->
+  <div class="panel" id="panel-rates">
+    <div class="docket">
+      <h3 class="section-title">Hourly rates</h3>
+      <table>
+        <thead><tr><th>Category</th><th class="num">Rate / hr</th><th></th></tr></thead>
+        <tbody id="ratesBody"></tbody>
+      </table>
+      <div class="add-form">
+        <h3 class="section-title" style="padding:0 0 12px" id="rateFormTitle">Add new rate</h3>
+        <div class="row2">
+          <label>Category<input id="r_category" /></label>
+          <label>Rate ($/hr)<input id="r_rate" type="number" step="0.01" /></label>
+        </div>
+        <div class="form-actions">
+          <button class="stamp" id="r_save">Save rate</button>
+          <button class="stamp ghost" id="r_cancel" style="display:none">Cancel edit</button>
+        </div>
+        <div class="msg" id="r_msg"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script type="module">
+  import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+  const SUPABASE_URL = "https://kjytblqvkwmyrudnksdp.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtqeXRibHF2a3dteXJ1ZG5rc2RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0OTEzMzcsImV4cCI6MjEwMTA2NzMzN30.4lONpoNVUzGQnf8ieBL8m6fa_ZmIaCIpNaVHEKOj3BI";
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const loginScreen = document.getElementById('loginScreen');
+  const dashboard = document.getElementById('dashboard');
+  const topRight = document.getElementById('topRight');
+  const loginForm = document.getElementById('loginForm');
+  const loginBtn = document.getElementById('loginBtn');
+  const loginMsg = document.getElementById('loginMsg');
+
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    loginBtn.disabled = true; loginBtn.textContent = 'Logging in…';
+    loginMsg.className = 'msg';
+    const { error } = await supabase.auth.signInWithPassword({
+      email: document.getElementById('email').value,
+      password: document.getElementById('password').value
+    });
+    if (error) {
+      loginMsg.textContent = 'Wrong email or password.';
+      loginMsg.classList.add('show','err');
+      loginBtn.disabled = false; loginBtn.textContent = 'Log in';
+    }
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', async () => { await supabase.auth.signOut(); });
+
+  supabase.auth.onAuthStateChange((_e, session) => {
+    if (session) {
+      loginScreen.style.display = 'none';
+      dashboard.style.display = 'block';
+      topRight.style.display = 'flex';
+      loadParts(); loadServices(); loadRates();
+    } else {
+      loginScreen.style.display = 'block';
+      dashboard.style.display = 'none';
+      topRight.style.display = 'none';
+    }
+  });
+
+  // ---- Tabs ----
+  document.querySelectorAll('.tabs button').forEach(btn => btn.addEventListener('click', () => {
+    document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+  }));
+
+  function showMsg(el, text, ok) {
+    el.textContent = text;
+    el.className = 'msg show ' + (ok ? 'ok' : 'err');
+  }
+
+  // ================= PARTS =================
+  let editingPartId = null;
+  async function loadParts() {
+    const { data } = await supabase.from('parts_inventory').select('*').order('part_name');
+    const body = document.getElementById('partsBody');
+    body.innerHTML = (data || []).map(p => `
+      <tr>
+        <td>${p.part_name}</td><td>${p.part_code ?? ''}</td>
+        <td class="num">$${Number(p.cost_price).toFixed(2)}</td>
+        <td class="num">$${Number(p.sell_price).toFixed(2)}</td>
+        <td>${p.supplier ?? ''}</td><td class="num">${p.quantity}</td>
+        <td><div class="rowbtns">
+          <button class="edit-btn" data-edit="${p.id}">Edit</button>
+          <button class="del-btn" data-del="${p.id}">Delete</button>
+        </div></td>
+      </tr>`).join('') || '<tr><td colspan="7" style="color:var(--ink-soft)">No parts yet.</td></tr>';
+
+    body.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => {
+      const p = data.find(x => x.id == b.dataset.edit);
+      editingPartId = p.id;
+      document.getElementById('p_name').value = p.part_name;
+      document.getElementById('p_code').value = p.part_code ?? '';
+      document.getElementById('p_cost').value = p.cost_price;
+      document.getElementById('p_sell').value = p.sell_price;
+      document.getElementById('p_supplier').value = p.supplier ?? '';
+      document.getElementById('p_qty').value = p.quantity;
+      document.getElementById('p_min').value = p.min_stock_level;
+      document.getElementById('partFormTitle').textContent = 'Edit part';
+      document.getElementById('p_cancel').style.display = 'inline-block';
+    }));
+    body.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', async () => {
+      if (!confirm('Delete this part? This cannot be undone.')) return;
+      await supabase.from('parts_inventory').delete().eq('id', b.dataset.del);
+      loadParts();
+    }));
+  }
+
+  function resetPartForm() {
+    editingPartId = null;
+    ['p_name','p_code','p_cost','p_sell','p_supplier'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('p_qty').value = 0;
+    document.getElementById('p_min').value = 5;
+    document.getElementById('partFormTitle').textContent = 'Add new part';
+    document.getElementById('p_cancel').style.display = 'none';
+  }
+  document.getElementById('p_cancel').addEventListener('click', resetPartForm);
+
+  document.getElementById('p_save').addEventListener('click', async () => {
+    const msg = document.getElementById('p_msg'); msg.className = 'msg';
+    const payload = {
+      part_name: document.getElementById('p_name').value,
+      part_code: document.getElementById('p_code').value || null,
+      cost_price: parseFloat(document.getElementById('p_cost').value) || 0,
+      sell_price: parseFloat(document.getElementById('p_sell').value) || 0,
+      supplier: document.getElementById('p_supplier').value || null,
+      quantity: parseInt(document.getElementById('p_qty').value, 10) || 0,
+      min_stock_level: parseInt(document.getElementById('p_min').value, 10) || 0
+    };
+    if (!payload.part_name) { showMsg(msg, 'Name is required.', false); return; }
+
+    const { error } = editingPartId
+      ? await supabase.from('parts_inventory').update(payload).eq('id', editingPartId)
+      : await supabase.from('parts_inventory').insert(payload);
+
+    if (error) { showMsg(msg, error.message, false); return; }
+    showMsg(msg, 'Saved.', true);
+    resetPartForm();
+    loadParts();
+  });
+
+  // ================= SERVICES =================
+  let editingServiceId = null;
+  async function loadServices() {
+    const { data } = await supabase.from('services').select('*').order('service_name');
+    const body = document.getElementById('servicesBody');
+    body.innerHTML = (data || []).map(s => `
+      <tr>
+        <td>${s.service_name}</td><td>${s.service_code ?? ''}</td>
+        <td class="num">$${Number(s.base_price).toFixed(2)}</td>
+        <td class="num">${s.estimated_hours ?? ''}</td><td>${s.category ?? ''}</td>
+        <td><div class="rowbtns">
+          <button class="edit-btn" data-edit="${s.id}">Edit</button>
+          <button class="del-btn" data-del="${s.id}">Delete</button>
+        </div></td>
+      </tr>`).join('') || '<tr><td colspan="6" style="color:var(--ink-soft)">No services yet.</td></tr>';
+
+    body.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => {
+      const s = data.find(x => x.id == b.dataset.edit);
+      editingServiceId = s.id;
+      document.getElementById('s_name').value = s.service_name;
+      document.getElementById('s_code').value = s.service_code ?? '';
+      document.getElementById('s_price').value = s.base_price;
+      document.getElementById('s_hours').value = s.estimated_hours ?? '';
+      document.getElementById('s_category').value = s.category ?? '';
+      document.getElementById('svcFormTitle').textContent = 'Edit service';
+      document.getElementById('s_cancel').style.display = 'inline-block';
+    }));
+    body.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', async () => {
+      if (!confirm('Delete this service?')) return;
+      await supabase.from('services').delete().eq('id', b.dataset.del);
+      loadServices();
+    }));
+  }
+
+  function resetServiceForm() {
+    editingServiceId = null;
+    ['s_name','s_code','s_price','s_hours','s_category'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('svcFormTitle').textContent = 'Add new service';
+    document.getElementById('s_cancel').style.display = 'none';
+  }
+  document.getElementById('s_cancel').addEventListener('click', resetServiceForm);
+
+  document.getElementById('s_save').addEventListener('click', async () => {
+    const msg = document.getElementById('s_msg'); msg.className = 'msg';
+    const payload = {
+      service_name: document.getElementById('s_name').value,
+      service_code: document.getElementById('s_code').value || null,
+      base_price: parseFloat(document.getElementById('s_price').value) || 0,
+      estimated_hours: document.getElementById('s_hours').value ? parseFloat(document.getElementById('s_hours').value) : null,
+      category: document.getElementById('s_category').value || null
+    };
+    if (!payload.service_name) { showMsg(msg, 'Name is required.', false); return; }
+
+    const { error } = editingServiceId
+      ? await supabase.from('services').update(payload).eq('id', editingServiceId)
+      : await supabase.from('services').insert(payload);
+
+    if (error) { showMsg(msg, error.message, false); return; }
+    showMsg(msg, 'Saved.', true);
+    resetServiceForm();
+    loadServices();
+  });
+
+  // ================= RATES =================
+  let editingRateId = null;
+  async function loadRates() {
+    const { data } = await supabase.from('hourly_rates').select('*').order('service_category');
+    const body = document.getElementById('ratesBody');
+    body.innerHTML = (data || []).map(r => `
+      <tr>
+        <td>${r.service_category}</td><td class="num">$${Number(r.hourly_rate).toFixed(2)}</td>
+        <td><div class="rowbtns">
+          <button class="edit-btn" data-edit="${r.id}">Edit</button>
+          <button class="del-btn" data-del="${r.id}">Delete</button>
+        </div></td>
+      </tr>`).join('') || '<tr><td colspan="3" style="color:var(--ink-soft)">No rates yet.</td></tr>';
+
+    body.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => {
+      const r = data.find(x => x.id == b.dataset.edit);
+      editingRateId = r.id;
+      document.getElementById('r_category').value = r.service_category;
+      document.getElementById('r_rate').value = r.hourly_rate;
+      document.getElementById('rateFormTitle').textContent = 'Edit rate';
+      document.getElementById('r_cancel').style.display = 'inline-block';
+    }));
+    body.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', async () => {
+      if (!confirm('Delete this rate category?')) return;
+      await supabase.from('hourly_rates').delete().eq('id', b.dataset.del);
+      loadRates();
+    }));
+  }
+
+  function resetRateForm() {
+    editingRateId = null;
+    document.getElementById('r_category').value = '';
+    document.getElementById('r_rate').value = '';
+    document.getElementById('rateFormTitle').textContent = 'Add new rate';
+    document.getElementById('r_cancel').style.display = 'none';
+  }
+  document.getElementById('r_cancel').addEventListener('click', resetRateForm);
+
+  document.getElementById('r_save').addEventListener('click', async () => {
+    const msg = document.getElementById('r_msg'); msg.className = 'msg';
+    const category = document.getElementById('r_category').value;
+    const rate = parseFloat(document.getElementById('r_rate').value) || 0;
+    if (!category) { showMsg(msg, 'Category is required.', false); return; }
+
+    const { error } = editingRateId
+      ? await supabase.from('hourly_rates').update({ service_category: category, hourly_rate: rate }).eq('id', editingRateId)
+      : await supabase.from('hourly_rates').insert({ service_category: category, hourly_rate: rate, effective_date: new Date().toISOString().split('T')[0] });
+
+    if (error) { showMsg(msg, error.message, false); return; }
+    showMsg(msg, 'Saved.', true);
+    resetRateForm();
+    loadRates();
+  });
+</script>
+
+</body>
+</html>
