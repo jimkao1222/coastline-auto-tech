@@ -271,16 +271,22 @@
   }
 
   async function startWorkOrder(appointmentId, customerId, vehicleId) {
-    await supabase.from('work_orders').insert({
+    const { data, error } = await supabase.from('work_orders').insert({
       appointment_id: appointmentId,
       customer_id: customerId,
       vehicle_id: vehicleId,
       status: 'pending',
       start_time: new Date().toISOString()
-    });
+    }).select('id').single();
+
     await supabase.from('appointments').update({ status: 'in_progress' }).eq('id', appointmentId);
-    loadAppointments();
-    loadWorkOrders();
+
+    if (!error && data) {
+      window.location.href = `workorder.html?id=${data.id}`;
+    } else {
+      loadAppointments();
+      loadWorkOrders();
+    }
   }
 
   async function loadWorkOrders() {
@@ -307,7 +313,8 @@
           <div class="meta">Work order #${w.id} · <span class="pill ${w.status}">${w.status}</span></div>
         </div>
         <div class="job-actions">
-          <button class="action primary" data-complete="${w.id}">Mark complete</button>
+          <a class="action primary" href="workorder.html?id=${w.id}" style="text-decoration:none;display:inline-block">Open</a>
+          <button class="action" data-complete="${w.id}">Mark complete</button>
         </div>
       </div>
     `).join('');
