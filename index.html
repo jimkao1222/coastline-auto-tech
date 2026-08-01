@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Book a Service — Coastline Auto Tech</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --navy-deep:#0B2436;
+    --navy-mid:#123249;
+    --steel:#54727F;
+    --paper:#EDE7D8;
+    --paper-line:#D8CFB8;
+    --ink:#182228;
+    --ink-soft:#4A5860;
+    --orange:#E4590A;
+    --orange-dark:#B8430A;
+    --ok:#2F6B4F;
+    --warn:#AE3226;
+    --radius:2px;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  a{color:inherit;}
+
+  /* ---------- Header : coastline horizon ---------- */
+  header.top{
+    position:relative;
+    background:linear-gradient(180deg,var(--navy-deep) 0%, var(--navy-mid) 65%, #2C5468 100%);
+    padding:0;
+    overflow:hidden;
+  }
+  header.top::after{
+    content:"";
+    position:absolute;
+    left:0;right:0;bottom:0;
+    height:2px;
+    background:linear-gradient(90deg, transparent, rgba(228,89,10,.85), transparent);
+  }
+  .top-inner{
+    max-width:760px;
+    margin:0 auto;
+    padding:38px 24px 44px;
+    text-align:center;
+  }
+  .wordmark{
+    font-family:'Oswald',sans-serif;
+    font-weight:600;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:#F4EFE2;
+    font-size:15px;
+  }
+  .wordmark span{color:var(--orange);}
+  .locale{
+    margin-top:6px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:.08em;
+    color:#9FB3BE;
+    text-transform:uppercase;
+  }
+
+  /* ---------- Hero ---------- */
+  .hero{
+    max-width:760px;
+    margin:0 auto;
+    padding:46px 24px 12px;
+    text-align:center;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--orange-dark);
+    margin:0 0 14px;
+  }
+  h1{
+    font-family:'Oswald',sans-serif;
+    font-weight:600;
+    font-size:clamp(28px,5vw,42px);
+    line-height:1.08;
+    margin:0 0 14px;
+    color:var(--navy-deep);
+  }
+  .sub{
+    font-size:16px;
+    line-height:1.55;
+    color:var(--ink-soft);
+    max-width:46ch;
+    margin:0 auto;
+  }
+
+  /* ---------- Docket card ---------- */
+  main{
+    max-width:640px;
+    margin:38px auto 60px;
+    padding:0 20px;
+  }
+  .docket{
+    background:#F6F2E7;
+    border:1px solid var(--paper-line);
+    border-radius:var(--radius);
+    box-shadow:0 18px 40px -18px rgba(11,36,54,.35);
+    position:relative;
+  }
+  .perf{
+    height:14px;
+    background-image:radial-gradient(circle, var(--paper) 2.4px, transparent 2.6px);
+    background-size:18px 14px;
+    background-position:6px center;
+    border-bottom:1px dashed var(--paper-line);
+  }
+  .docket-head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    padding:20px 26px 14px;
+    border-bottom:1px dashed var(--paper-line);
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .docket-head .label{
+    font-family:'Oswald',sans-serif;
+    font-size:13px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--navy-deep);
+  }
+  .docket-head .no{
+    display:block;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-top:2px;
+  }
+  .docket-head .status{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:.1em;
+    padding:4px 9px;
+    border:1px solid var(--steel);
+    color:var(--steel);
+    border-radius:20px;
+  }
+
+  form{padding:6px 26px 28px;}
+
+  fieldset{
+    border:none;
+    padding:18px 0;
+    margin:0;
+    border-bottom:1px dotted var(--paper-line);
+  }
+  fieldset:last-of-type{border-bottom:none;}
+
+  legend{
+    font-family:'Oswald',sans-serif;
+    font-size:13px;
+    letter-spacing:.09em;
+    text-transform:uppercase;
+    color:var(--navy-deep);
+    padding:0 0 12px;
+  }
+
+  .row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+  }
+
+  label{
+    display:block;
+    font-size:12.5px;
+    font-weight:500;
+    color:var(--ink-soft);
+    margin-bottom:12px;
+  }
+
+  input, select, textarea{
+    display:block;
+    width:100%;
+    margin-top:6px;
+    padding:10px 11px;
+    background:#FFFDF8;
+    border:1px solid var(--paper-line);
+    border-radius:var(--radius);
+    font-family:'Inter',sans-serif;
+    font-size:14.5px;
+    color:var(--ink);
+  }
+
+  input[name="rego"], input[name="kms"], select[name="appointment_time"], .no{
+    font-family:'IBM Plex Mono',monospace;
+  }
+
+  input:focus, select:focus, textarea:focus{
+    outline:2px solid var(--orange);
+    outline-offset:1px;
+    border-color:var(--orange);
+  }
+
+  select{
+    appearance:none;
+    -webkit-appearance:none;
+    background-image:linear-gradient(45deg, transparent 50%, var(--steel) 50%), linear-gradient(135deg, var(--steel) 50%, transparent 50%);
+    background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%;
+    background-size:5px 5px, 5px 5px;
+    background-repeat:no-repeat;
+    padding-right:34px;
+  }
+
+  textarea{resize:vertical;min-height:70px;}
+
+  .stamp{
+    font-family:'Oswald',sans-serif;
+    font-weight:600;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    font-size:15px;
+    color:#fff;
+    background:var(--orange);
+    border:2px solid var(--orange);
+    border-radius:var(--radius);
+    padding:13px 22px;
+    width:100%;
+    cursor:pointer;
+    transform:rotate(-1deg);
+    transition:transform .15s ease, background .15s ease;
+  }
+  .stamp:hover{background:var(--orange-dark);border-color:var(--orange-dark);}
+  .stamp:active{transform:rotate(0deg) scale(.99);}
+  .stamp:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+
+  .note{
+    text-align:center;
+    font-size:12px;
+    color:var(--ink-soft);
+    margin:12px 0 0;
+  }
+
+  .msg{
+    margin-top:14px;
+    padding:12px 14px;
+    border-radius:var(--radius);
+    font-size:13.5px;
+    display:none;
+  }
+  .msg.show{display:block;}
+  .msg.ok{background:rgba(47,107,79,.1);color:var(--ok);border:1px solid rgba(47,107,79,.35);}
+  .msg.err{background:rgba(174,50,38,.1);color:var(--warn);border:1px solid rgba(174,50,38,.35);}
+
+  footer{
+    text-align:center;
+    padding:26px 20px 40px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+  }
+
+  @media (max-width:560px){
+    .row{grid-template-columns:1fr;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-inner">
+    <div class="wordmark">Coastline <span>Auto</span> Tech</div>
+    <div class="locale">Gold Coast · QLD</div>
+  </div>
+</header>
+
+<section class="hero">
+  <p class="eyebrow">Book a service</p>
+  <h1>Get your car booked in.</h1>
+  <p class="sub">One mechanic, straight answers, no surprises. Fill in the docket below and we'll call to confirm your slot.</p>
+</section>
+
+<main>
+  <div class="docket">
+    <div class="perf"></div>
+    <div class="docket-head">
+      <div>
+        <span class="label">Booking Docket</span>
+        <span class="no" id="docketNo">No. — assigned on submit</span>
+      </div>
+      <div class="status">DRAFT</div>
+    </div>
+
+    <form id="bookingForm" novalidate>
+
+      <fieldset>
+        <legend>Your details</legend>
+        <div class="row">
+          <label>Full name
+            <input required name="name" type="text" autocomplete="name" />
+          </label>
+          <label>Phone
+            <input required name="phone" type="tel" autocomplete="tel" />
+          </label>
+        </div>
+        <label>Email <span style="opacity:.6">(optional)</span>
+          <input name="email" type="email" autocomplete="email" />
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Vehicle</legend>
+        <div class="row">
+          <label>Rego
+            <input required name="rego" type="text" style="text-transform:uppercase" />
+          </label>
+          <label>Odometer, km <span style="opacity:.6">(optional)</span>
+            <input name="kms" type="number" min="0" />
+          </label>
+        </div>
+        <label>Make, model &amp; year
+          <input required name="vehicle" type="text" placeholder="e.g. 2015 Mazda 3 Sedan" />
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Service requested</legend>
+        <label>Service type
+          <select required name="service_type" id="serviceType">
+            <option value="" disabled selected>Choose a service…</option>
+            <option>Diagnostic Fee</option>
+            <option>Oil Change</option>
+            <option>Tyre Replacement</option>
+            <option>Brake Inspection</option>
+            <option>Air Conditioning Check</option>
+            <option>Battery Replacement</option>
+            <option>Spark Plug Replacement</option>
+            <option>Coolant Flush</option>
+            <option>Air Filter Replacement</option>
+            <option>Full Vehicle Inspection</option>
+            <option>Something else / not sure</option>
+          </select>
+        </label>
+        <label>Tell us what's going on <span style="opacity:.6">(optional)</span>
+          <textarea name="description" rows="3" placeholder="Any noises, warning lights, or symptoms?"></textarea>
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Preferred time</legend>
+        <div class="row">
+          <label>Date
+            <input required name="appointment_date" type="date" id="apptDate" />
+          </label>
+          <label>Time
+            <select required name="appointment_time">
+              <option value="" disabled selected>Choose a time…</option>
+              <option>08:00</option>
+              <option>08:30</option>
+              <option>09:00</option>
+              <option>09:30</option>
+              <option>10:00</option>
+              <option>10:30</option>
+              <option>11:00</option>
+              <option>11:30</option>
+              <option>12:00</option>
+              <option>13:00</option>
+              <option>13:30</option>
+              <option>14:00</option>
+              <option>14:30</option>
+              <option>15:00</option>
+              <option>15:30</option>
+            </select>
+          </label>
+        </div>
+      </fieldset>
+
+      <button type="submit" class="stamp" id="submitBtn">Lock in booking</button>
+      <p class="note">We'll confirm by phone before your slot is locked in.</p>
+      <div class="msg" id="formMessage" role="status" aria-live="polite"></div>
+    </form>
+  </div>
+</main>
+
+<footer>
+  0403 859 247 · [Shop email] · Mon–Fri [hours here]
+</footer>
+
+<script>
+  // ------------------------------------------------------------------
+  // CONFIG — fill these in from Supabase → Project Settings → API
+  // ------------------------------------------------------------------
+  const SUPABASE_URL = "https://kjytblqvkwmyrudnksdp.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtqeXRibHF2a3dteXJ1ZG5rc2RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0OTEzMzcsImV4cCI6MjEwMTA2NzMzN30.4lONpoNVUzGQnf8ieBL8m6fa_ZmIaCIpNaVHEKOj3BI";
+  // ------------------------------------------------------------------
+
+  const apptDate = document.getElementById('apptDate');
+  const today = new Date().toISOString().split('T')[0];
+  apptDate.setAttribute('min', today);
+
+  const form = document.getElementById('bookingForm');
+  const submitBtn = document.getElementById('submitBtn');
+  const msg = document.getElementById('formMessage');
+  const docketNo = document.getElementById('docketNo');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    msg.className = 'msg';
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting…';
+
+    const fd = new FormData(form);
+    const payload = {
+      p_name: fd.get('name'),
+      p_phone: fd.get('phone'),
+      p_email: fd.get('email') || null,
+      p_address: null,
+      p_rego: fd.get('rego').toUpperCase(),
+      p_vehicle: fd.get('vehicle'),
+      p_kms: fd.get('kms') ? parseInt(fd.get('kms'), 10) : null,
+      p_service_type: fd.get('service_type'),
+      p_description: fd.get('description') || null,
+      p_appointment_date: fd.get('appointment_date'),
+      p_appointment_time: fd.get('appointment_time')
+    };
+
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/create_booking`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) throw new Error('Request failed');
+      const data = await res.json();
+      const id = Array.isArray(data) ? data[0]?.appointment_id : data?.appointment_id;
+
+      docketNo.textContent = `No. ${String(id).padStart(5,'0')}`;
+      msg.textContent = "Booking received — we'll call to confirm your slot shortly.";
+      msg.classList.add('show','ok');
+      form.reset();
+    } catch (err) {
+      msg.textContent = "Couldn't lock in that booking. Check your details and try again, or call us directly.";
+      msg.classList.add('show','err');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Lock in booking';
+    }
+  });
+</script>
+
+</body>
+</html>
