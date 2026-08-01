@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Work Order — Coastline Auto Tech</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --navy-deep:#0B2436; --navy-mid:#123249; --steel:#54727F;
+    --paper:#EDE7D8; --paper-line:#D8CFB8; --card:#F6F2E7;
+    --ink:#182228; --ink-soft:#4A5860;
+    --orange:#E4590A; --orange-dark:#B8430A;
+    --ok:#2F6B4F; --ok-bg:rgba(47,107,79,.1);
+    --warn:#AE3226; --radius:2px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;}
+
+  header.top{
+    background:linear-gradient(180deg,var(--navy-deep) 0%, var(--navy-mid) 100%);
+    padding:18px 24px;display:flex;align-items:center;justify-content:space-between;
+    flex-wrap:wrap;gap:10px;position:relative;
+  }
+  header.top::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;
+    background:linear-gradient(90deg, transparent, rgba(228,89,10,.85), transparent);}
+  .wordmark{font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#F4EFE2;font-size:14px;}
+  .wordmark span{color:var(--orange);}
+  .back{font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#F4EFE2;text-decoration:none;border:1px solid var(--steel);padding:7px 14px;border-radius:var(--radius);}
+  .back:hover{border-color:var(--orange);color:var(--orange);}
+
+  #loginScreen{max-width:380px;margin:80px auto;padding:0 20px;}
+  .login-card{background:var(--card);border:1px solid var(--paper-line);border-radius:var(--radius);padding:28px 26px;box-shadow:0 18px 40px -18px rgba(11,36,54,.35);}
+  .login-card h1{font-family:'Oswald',sans-serif;font-size:20px;font-weight:600;margin:0 0 4px;color:var(--navy-deep);}
+  .login-card p{font-size:13px;color:var(--ink-soft);margin:0 0 20px;}
+
+  label{display:block;font-size:12.5px;font-weight:500;color:var(--ink-soft);margin-bottom:14px;}
+  input,select,textarea{display:block;width:100%;margin-top:6px;padding:9px 10px;background:#FFFDF8;border:1px solid var(--paper-line);border-radius:var(--radius);font-family:'Inter',sans-serif;font-size:14px;color:var(--ink);}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--orange);outline-offset:1px;border-color:var(--orange);}
+
+  .stamp{font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.08em;text-transform:uppercase;font-size:13.5px;color:#fff;background:var(--orange);border:2px solid var(--orange);border-radius:var(--radius);padding:10px 18px;cursor:pointer;}
+  .stamp:hover{background:var(--orange-dark);border-color:var(--orange-dark);}
+  .stamp:disabled{opacity:.6;cursor:not-allowed;}
+  .stamp.block{width:100%;}
+
+  .msg{margin-top:14px;padding:11px 13px;border-radius:var(--radius);font-size:13px;display:none;}
+  .msg.show{display:block;}
+  .msg.err{background:rgba(174,50,38,.1);color:var(--warn);border:1px solid rgba(174,50,38,.35);}
+
+  #dashboard{display:none;max-width:820px;margin:0 auto;padding:30px 20px 60px;}
+
+  .docket{background:var(--card);border:1px solid var(--paper-line);border-radius:var(--radius);margin-bottom:24px;box-shadow:0 18px 40px -18px rgba(11,36,54,.3);}
+  .docket-head{padding:18px 22px;border-bottom:1px dashed var(--paper-line);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;align-items:center;}
+  .docket-head b{font-family:'Oswald',sans-serif;font-size:16px;color:var(--navy-deep);}
+  .docket-head .meta{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-soft);margin-top:3px;}
+  .status-row{padding:14px 22px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-bottom:1px dashed var(--paper-line);}
+  .status-row select{width:auto;flex:0 0 auto;margin-top:0;}
+  .pill{font-family:'IBM Plex Mono',monospace;font-size:11px;padding:3px 9px;border-radius:20px;border:1px solid var(--steel);color:var(--steel);text-transform:uppercase;}
+
+  .section-title{font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--navy-deep);padding:16px 22px 8px;}
+
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  th{text-align:left;font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);padding:6px 22px;border-bottom:1px dotted var(--paper-line);}
+  td{padding:9px 22px;border-bottom:1px dotted var(--paper-line);}
+  td.num, th.num{font-family:'IBM Plex Mono',monospace;text-align:right;}
+  .rm{color:var(--warn);background:none;border:none;cursor:pointer;font-size:12px;text-decoration:underline;}
+
+  .add-form{padding:16px 22px 20px;border-bottom:1px dashed var(--paper-line);}
+  .type-toggle{display:flex;gap:8px;margin-bottom:14px;}
+  .type-toggle button{flex:1;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:.06em;text-transform:uppercase;padding:9px;border:1px solid var(--paper-line);background:#fff;color:var(--ink-soft);cursor:pointer;border-radius:var(--radius);}
+  .type-toggle button.active{background:var(--navy-mid);border-color:var(--navy-mid);color:#fff;}
+  .row2{display:grid;grid-template-columns:2fr 1fr;gap:12px;}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+  .stock-note{font-size:11.5px;color:var(--ink-soft);margin-top:-8px;margin-bottom:12px;}
+
+  .summary{padding:18px 22px 24px;}
+  .sum-row{display:flex;justify-content:space-between;font-size:13.5px;padding:6px 0;color:var(--ink-soft);}
+  .sum-row.total{font-family:'Oswald',sans-serif;font-size:16px;color:var(--navy-deep);border-top:1px dashed var(--paper-line);margin-top:8px;padding-top:12px;}
+  .sum-row.profit{font-family:'IBM Plex Mono',monospace;font-weight:500;}
+  .sum-row.profit.good{color:var(--ok);}
+  .sum-row.profit.bad{color:var(--warn);}
+
+  @media (max-width:560px){ .row3{grid-template-columns:1fr;} .row2{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wordmark">Coastline <span>Auto</span> Tech — Workshop</div>
+  <a class="back" href="internal.html">← Dashboard</a>
+</header>
+
+<section id="loginScreen">
+  <div class="login-card">
+    <h1>Staff login</h1>
+    <p>For workshop use only.</p>
+    <form id="loginForm">
+      <label>Email<input required type="email" id="email" autocomplete="username" /></label>
+      <label>Password<input required type="password" id="password" autocomplete="current-password" /></label>
+      <button type="submit" class="stamp block" id="loginBtn">Log in</button>
+      <div class="msg" id="loginMsg"></div>
+    </form>
+  </div>
+</section>
+
+<main id="dashboard">
+  <div class="docket">
+    <div class="docket-head">
+      <div>
+        <b id="custName">—</b>
+        <div class="meta" id="vehicleMeta">—</div>
+      </div>
+      <span class="pill" id="statusPill">—</span>
+    </div>
+    <div class="status-row">
+      <label style="margin:0;flex:1">Status
+        <select id="statusSelect">
+          <option value="pending">Pending</option>
+          <option value="in_progress">In progress</option>
+          <option value="waiting_for_parts">Waiting for parts</option>
+          <option value="on_hold">On hold</option>
+          <option value="completed">Completed</option>
+        </select>
+      </label>
+      <button class="stamp" id="updateStatusBtn" style="margin-top:20px">Update</button>
+    </div>
+
+    <h3 class="section-title">Items on this job</h3>
+    <table>
+      <thead><tr><th>Description</th><th class="num">Qty</th><th class="num">Price</th><th class="num">Subtotal</th><th></th></tr></thead>
+      <tbody id="itemsBody"></tbody>
+    </table>
+
+    <div class="add-form">
+      <h3 class="section-title" style="padding:0 0 10px">Add item</h3>
+      <div class="type-toggle">
+        <button type="button" class="active" data-type="part">Part</button>
+        <button type="button" data-type="labour">Labour</button>
+        <button type="button" data-type="custom">Custom</button>
+      </div>
+
+      <div id="partFields">
+        <label>Choose part
+          <select id="partSelect"></select>
+        </label>
+        <div class="row2">
+          <label>Quantity<input type="number" id="partQty" value="1" min="1" /></label>
+          <label>Unit price ($)<input type="number" id="partPrice" step="0.01" /></label>
+        </div>
+        <div class="stock-note" id="stockNote"></div>
+      </div>
+
+      <div id="labourFields" style="display:none">
+        <div class="row2">
+          <label>Category
+            <select id="rateSelect"></select>
+          </label>
+          <label>Hours<input type="number" id="labourHours" step="0.25" value="1" /></label>
+        </div>
+      </div>
+
+      <div id="customFields" style="display:none">
+        <label>Description<input type="text" id="customDesc" /></label>
+        <div class="row2">
+          <label>Price ($)<input type="number" id="customPrice" step="0.01" /></label>
+          <label>Cost ($, optional)<input type="number" id="customCost" step="0.01" value="0" /></label>
+        </div>
+      </div>
+
+      <button class="stamp block" id="addItemBtn">Add to job</button>
+      <div class="msg" id="itemMsg"></div>
+    </div>
+
+    <div class="summary">
+      <div class="sum-row"><span>Parts &amp; services revenue</span><span id="sumRevenue">$0.00</span></div>
+      <div class="sum-row"><span>Cost of parts used</span><span id="sumCost">$0.00</span></div>
+      <div class="sum-row total"><span>Total charged</span><span id="sumTotal">$0.00</span></div>
+      <div class="sum-row profit"><span>Estimated profit</span><span id="sumProfit">$0.00</span></div>
+    </div>
+  </div>
+</main>
+
+<script type="module">
+  import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+  const SUPABASE_URL = "https://kjytblqvkwmyrudnksdp.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtqeXRibHF2a3dteXJ1ZG5rc2RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0OTEzMzcsImV4cCI6MjEwMTA2NzMzN30.4lONpoNVUzGQnf8ieBL8m6fa_ZmIaCIpNaVHEKOj3BI";
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const params = new URLSearchParams(window.location.search);
+  const workOrderId = params.get('id');
+
+  const loginScreen = document.getElementById('loginScreen');
+  const dashboard = document.getElementById('dashboard');
+  const loginForm = document.getElementById('loginForm');
+  const loginBtn = document.getElementById('loginBtn');
+  const loginMsg = document.getElementById('loginMsg');
+
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    loginBtn.disabled = true; loginBtn.textContent = 'Logging in…';
+    loginMsg.className = 'msg';
+    const { error } = await supabase.auth.signInWithPassword({
+      email: document.getElementById('email').value,
+      password: document.getElementById('password').value
+    });
+    if (error) {
+      loginMsg.textContent = 'Wrong email or password.';
+      loginMsg.classList.add('show','err');
+      loginBtn.disabled = false; loginBtn.textContent = 'Log in';
+    }
+  });
+
+  let partsCache = [];
+  let ratesCache = [];
+
+  supabase.auth.onAuthStateChange((_e, session) => {
+    if (session) {
+      loginScreen.style.display = 'none';
+      dashboard.style.display = 'block';
+      init();
+    } else {
+      loginScreen.style.display = 'block';
+      dashboard.style.display = 'none';
+    }
+  });
+
+  async function init() {
+    if (!workOrderId) {
+      document.getElementById('custName').textContent = 'No work order selected';
+      return;
+    }
+    await Promise.all([loadPartsDropdown(), loadRatesDropdown(), loadWorkOrder()]);
+  }
+
+  async function loadWorkOrder() {
+    const { data: wo, error } = await supabase
+      .from('work_orders')
+      .select('*, customers(name, phone), vehicles(rego, vehicle, kms)')
+      .eq('id', workOrderId)
+      .single();
+
+    if (error || !wo) {
+      document.getElementById('custName').textContent = 'Work order not found';
+      return;
+    }
+
+    document.getElementById('custName').textContent = wo.customers?.name ?? 'Unknown';
+    document.getElementById('vehicleMeta').textContent =
+      `${wo.vehicles?.vehicle ?? ''} · ${wo.vehicles?.rego ?? ''} · Work order #${wo.id}`;
+    document.getElementById('statusPill').textContent = wo.status;
+    document.getElementById('statusPill').className = 'pill';
+    document.getElementById('statusSelect').value = wo.status;
+
+    document.getElementById('updateStatusBtn').onclick = async () => {
+      const newStatus = document.getElementById('statusSelect').value;
+      await supabase.from('work_orders').update({ status: newStatus }).eq('id', workOrderId);
+      document.getElementById('statusPill').textContent = newStatus;
+    };
+
+    await loadItems();
+  }
+
+  async function loadPartsDropdown() {
+    const { data } = await supabase.from('parts_inventory').select('*').order('part_name');
+    partsCache = data || [];
+    const sel = document.getElementById('partSelect');
+    sel.innerHTML = partsCache.map(p =>
+      `<option value="${p.id}">${p.part_name} — $${p.sell_price} (${p.quantity} in stock)</option>`
+    ).join('');
+    updatePartFields();
+    sel.addEventListener('change', updatePartFields);
+  }
+
+  function updatePartFields() {
+    const part = partsCache.find(p => p.id == document.getElementById('partSelect').value);
+    if (!part) return;
+    document.getElementById('partPrice').value = part.sell_price;
+    document.getElementById('stockNote').textContent = `Cost price: $${part.cost_price} · Currently ${part.quantity} in stock`;
+  }
+
+  async function loadRatesDropdown() {
+    const { data } = await supabase.from('hourly_rates').select('*').order('service_category');
+    ratesCache = data || [];
+    const sel = document.getElementById('rateSelect');
+    sel.innerHTML = ratesCache.map(r =>
+      `<option value="${r.hourly_rate}">${r.service_category} — $${r.hourly_rate}/hr</option>`
+    ).join('');
+  }
+
+  // ---- type toggle ----
+  const typeButtons = document.querySelectorAll('.type-toggle button');
+  typeButtons.forEach(btn => btn.addEventListener('click', () => {
+    typeButtons.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('partFields').style.display = btn.dataset.type === 'part' ? 'block' : 'none';
+    document.getElementById('labourFields').style.display = btn.dataset.type === 'labour' ? 'block' : 'none';
+    document.getElementById('customFields').style.display = btn.dataset.type === 'custom' ? 'block' : 'none';
+  }));
+
+  document.getElementById('addItemBtn').addEventListener('click', async () => {
+    const activeType = document.querySelector('.type-toggle button.active').dataset.type;
+    const itemMsg = document.getElementById('itemMsg');
+    itemMsg.className = 'msg';
+    let payload = { work_order_id: workOrderId };
+
+    if (activeType === 'part') {
+      const partId = document.getElementById('partSelect').value;
+      const part = partsCache.find(p => p.id == partId);
+      const qty = parseInt(document.getElementById('partQty').value, 10) || 1;
+      const price = parseFloat(document.getElementById('partPrice').value) || 0;
+      payload = { ...payload, part_id: partId, item_description: part.part_name,
+        quantity: qty, unit_price: price, unit_cost: part.cost_price, subtotal: price * qty };
+      await supabase.from('parts_inventory').update({ quantity: part.quantity - qty }).eq('id', partId);
+    } else if (activeType === 'labour') {
+      const rate = parseFloat(document.getElementById('rateSelect').value);
+      const category = document.getElementById('rateSelect').selectedOptions[0].textContent.split(' —')[0];
+      const hours = parseFloat(document.getElementById('labourHours').value) || 0;
+      const price = rate * hours;
+      payload = { ...payload, item_description: `Labour – ${hours} hrs @ $${rate}/hr (${category})`,
+        quantity: 1, unit_price: price, unit_cost: 0, subtotal: price };
+    } else {
+      const desc = document.getElementById('customDesc').value;
+      const price = parseFloat(document.getElementById('customPrice').value) || 0;
+      const cost = parseFloat(document.getElementById('customCost').value) || 0;
+      if (!desc) { itemMsg.textContent = 'Add a description first.'; itemMsg.classList.add('show','err'); return; }
+      payload = { ...payload, item_description: desc, quantity: 1, unit_price: price, unit_cost: cost, subtotal: price };
+    }
+
+    const { error } = await supabase.from('work_order_items').insert(payload);
+    if (error) {
+      itemMsg.textContent = "Couldn't add that item: " + error.message;
+      itemMsg.classList.add('show','err');
+      return;
+    }
+    if (activeType === 'part') await loadPartsDropdown();
+    await loadItems();
+  });
+
+  async function loadItems() {
+    const { data } = await supabase.from('work_order_items').select('*').eq('work_order_id', workOrderId).order('id');
+    const items = data || [];
+    const body = document.getElementById('itemsBody');
+    body.innerHTML = items.map(i => `
+      <tr>
+        <td>${i.item_description}</td>
+        <td class="num">${i.quantity}</td>
+        <td class="num">$${Number(i.unit_price).toFixed(2)}</td>
+        <td class="num">$${Number(i.subtotal).toFixed(2)}</td>
+        <td><button class="rm" data-id="${i.id}" data-part="${i.part_id ?? ''}" data-qty="${i.quantity}">Remove</button></td>
+      </tr>
+    `).join('') || '<tr><td colspan="5" style="color:var(--ink-soft)">No items yet.</td></tr>';
+
+    body.querySelectorAll('.rm').forEach(btn => btn.addEventListener('click', async () => {
+      if (btn.dataset.part) {
+        const part = partsCache.find(p => p.id == btn.dataset.part);
+        if (part) await supabase.from('parts_inventory').update({ quantity: part.quantity + parseInt(btn.dataset.qty, 10) }).eq('id', btn.dataset.part);
+      }
+      await supabase.from('work_order_items').delete().eq('id', btn.dataset.id);
+      await loadPartsDropdown();
+      await loadItems();
+    }));
+
+    const revenue = items.reduce((s, i) => s + Number(i.subtotal), 0);
+    const cost = items.reduce((s, i) => s + Number(i.unit_cost) * Number(i.quantity), 0);
+    const profit = revenue - cost;
+    document.getElementById('sumRevenue').textContent = `$${revenue.toFixed(2)}`;
+    document.getElementById('sumCost').textContent = `$${cost.toFixed(2)}`;
+    document.getElementById('sumTotal').textContent = `$${revenue.toFixed(2)}`;
+    const profitEl = document.getElementById('sumProfit');
+    const margin = revenue > 0 ? (profit / revenue * 100).toFixed(0) : 0;
+    profitEl.textContent = `$${profit.toFixed(2)} (${margin}% margin)`;
+    profitEl.classList.remove('good','bad');
+    profitEl.classList.add(profit >= 0 ? 'good' : 'bad');
+  }
+</script>
+
+</body>
+</html>
