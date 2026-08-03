@@ -133,6 +133,21 @@
   button.action.primary:hover{background:var(--orange-dark);}
   button.action:hover{border-color:var(--navy-mid);color:var(--navy-mid);}
   .empty{font-size:13.5px;color:var(--ink-soft);padding:16px 0;}
+
+  label{display:block;font-size:12.5px;font-weight:500;color:var(--ink-soft);margin-bottom:14px;}
+  input,select{display:block;width:100%;margin-top:6px;padding:9px 10px;background:#FFFDF8;border:1px solid var(--paper-line);border-radius:var(--radius);font-family:'Inter',sans-serif;font-size:14px;color:var(--ink);}
+  input:focus,select:focus{outline:2px solid var(--orange);outline-offset:1px;border-color:var(--orange);}
+  .msg{margin-top:12px;padding:10px 12px;border-radius:var(--radius);font-size:13px;display:none;}
+  .msg.show{display:block;}
+  .msg.err{background:rgba(174,50,38,.1);color:var(--warn);border:1px solid rgba(174,50,38,.35);}
+  .msg.ok{background:rgba(47,107,79,.1);color:var(--ok);border:1px solid rgba(47,107,79,.35);}
+
+  .new-wo-panel{background:var(--card);border:1px solid var(--paper-line);border-radius:var(--radius);padding:16px 18px;margin-bottom:16px;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .wo-mode{font-family:'Oswald',sans-serif;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;padding:8px 12px;border:1px solid var(--paper-line);background:#fff;color:var(--ink-soft);cursor:pointer;border-radius:var(--radius);}
+  .wo-mode.active{background:var(--navy-mid);border-color:var(--navy-mid);color:#fff;}
+  .del-btn{color:var(--warn);background:none;border:none;cursor:pointer;font-size:11.5px;text-decoration:underline;}
+  @media (max-width:560px){ .row2{grid-template-columns:1fr;} }
 </style>
 </head>
 <body>
@@ -172,6 +187,37 @@
   <div class="job-list" id="apptList"><p class="empty">Loading…</p></div>
 
   <h2 class="section-title">Work orders <span style="font-weight:400;text-transform:none;letter-spacing:0">(all)</span></h2>
+
+  <div class="new-wo-panel">
+    <button type="button" class="action primary" id="toggleNewWoBtn">+ New work order</button>
+    <div id="newWoForm" style="display:none;margin-top:14px">
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        <button type="button" class="wo-mode active" data-mode="existing">Existing customer</button>
+        <button type="button" class="wo-mode" data-mode="new">New customer</button>
+      </div>
+
+      <div id="existingCustBlock">
+        <label>Customer<select id="existCustomerSel"><option value="">Choose a customer…</option></select></label>
+        <label>Vehicle<select id="existVehicleSel"><option value="">Choose a vehicle…</option></select></label>
+      </div>
+
+      <div id="newCustBlock" style="display:none">
+        <div class="row2">
+          <label>Name<input id="newCustName" /></label>
+          <label>Phone<input id="newCustPhone" /></label>
+        </div>
+        <label>Address (optional)<input id="newCustAddr" /></label>
+        <div class="row2">
+          <label>Rego<input id="newVehRego" style="text-transform:uppercase" /></label>
+          <label>Odometer, km (optional)<input id="newVehKms" type="number" /></label>
+        </div>
+        <label>Make, model &amp; year<input id="newVehVehicle" placeholder="e.g. 2018 Toyota Hilux Ute" /></label>
+      </div>
+
+      <button type="button" class="action primary" id="createWoBtn">Create work order</button>
+      <div class="msg" id="newWoMsg"></div>
+    </div>
+  </div>
   <div class="job-list" id="woList"><p class="empty">Loading…</p></div>
 </main>
 
@@ -222,6 +268,7 @@
       userEmail.textContent = session.user.email;
       loadAppointments();
       loadWorkOrders();
+      loadCustomersForNewWo();
     } else {
       loginScreen.style.display = 'block';
       dashboard.style.display = 'none';
@@ -318,6 +365,7 @@
         <div class="job-actions">
           <a class="action primary" href="workorder.html?id=${w.id}" style="text-decoration:none;display:inline-block">Open</a>
           ${w.status !== 'completed' ? `<button class="action" data-complete="${w.id}">Mark complete</button>` : `<a class="action" href="invoice.html?id=${w.id}" style="text-decoration:none;display:inline-block">Invoice</a>`}
+          <button class="del-btn" data-delwo="${w.id}" style="margin-left:6px">Delete</button>
         </div>
       </div>
     `).join('');
@@ -328,7 +376,96 @@
         loadWorkOrders();
       });
     });
+    listEl.querySelectorAll('[data-delwo]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Delete this work order? Its parts/labour items will be deleted too. This cannot be undone.')) return;
+        await supabase.from('work_orders').delete().eq('id', btn.dataset.delwo);
+        loadWorkOrders();
+      });
+    });
   }
+
+  // ---- New work order panel ----
+  let allCustomers = [];
+
+  document.getElementById('toggleNewWoBtn').addEventListener('click', () => {
+    const form = document.getElementById('newWoForm');
+    form.style.display = form.style.display === 'none' ? 'block' : 'none';
+  });
+
+  document.querySelectorAll('.wo-mode').forEach(btn => btn.addEventListener('click', () => {
+    document.querySelectorAll('.wo-mode').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('existingCustBlock').style.display = btn.dataset.mode === 'existing' ? 'block' : 'none';
+    document.getElementById('newCustBlock').style.display = btn.dataset.mode === 'new' ? 'block' : 'none';
+  }));
+
+  async function loadCustomersForNewWo() {
+    const { data } = await supabase.from('customers').select('id, name, phone').order('name');
+    allCustomers = data || [];
+    const sel = document.getElementById('existCustomerSel');
+    sel.innerHTML = '<option value="">Choose a customer…</option>' +
+      allCustomers.map(c => `<option value="${c.id}">${c.name}${c.phone ? ' — ' + c.phone : ''}</option>`).join('');
+  }
+
+  document.getElementById('existCustomerSel').addEventListener('change', async (e) => {
+    const vSel = document.getElementById('existVehicleSel');
+    vSel.innerHTML = '<option value="">Loading…</option>';
+    if (!e.target.value) { vSel.innerHTML = '<option value="">Choose a vehicle…</option>'; return; }
+    const { data } = await supabase.from('vehicles').select('id, vehicle, rego').eq('customer_id', e.target.value).order('vehicle');
+    if (!data || !data.length) {
+      vSel.innerHTML = '<option value="">No vehicles on file for this customer</option>';
+      return;
+    }
+    vSel.innerHTML = '<option value="">Choose a vehicle…</option>' +
+      data.map(v => `<option value="${v.id}">${v.vehicle} (${v.rego})</option>`).join('');
+  });
+
+  document.getElementById('createWoBtn').addEventListener('click', async () => {
+    const msg = document.getElementById('newWoMsg'); msg.className = 'msg';
+    const mode = document.querySelector('.wo-mode.active').dataset.mode;
+    let customerId, vehicleId;
+
+    if (mode === 'existing') {
+      customerId = document.getElementById('existCustomerSel').value;
+      vehicleId = document.getElementById('existVehicleSel').value;
+      if (!customerId || !vehicleId) {
+        msg.textContent = 'Choose a customer and a vehicle first.';
+        msg.classList.add('show','err');
+        return;
+      }
+    } else {
+      const name = document.getElementById('newCustName').value;
+      const rego = document.getElementById('newVehRego').value;
+      const vehicleText = document.getElementById('newVehVehicle').value;
+      if (!name || !rego || !vehicleText) {
+        msg.textContent = 'Name, rego, and vehicle are required for a new customer.';
+        msg.classList.add('show','err');
+        return;
+      }
+      const { data: cust, error: custErr } = await supabase.from('customers').insert({
+        name, phone: document.getElementById('newCustPhone').value || null,
+        address: document.getElementById('newCustAddr').value || null
+      }).select('id').single();
+      if (custErr) { msg.textContent = custErr.message; msg.classList.add('show','err'); return; }
+      customerId = cust.id;
+
+      const kmsVal = document.getElementById('newVehKms').value;
+      const { data: veh, error: vehErr } = await supabase.from('vehicles').insert({
+        customer_id: customerId, rego: rego.toUpperCase(), vehicle: vehicleText,
+        kms: kmsVal ? parseInt(kmsVal, 10) : null
+      }).select('id').single();
+      if (vehErr) { msg.textContent = vehErr.message; msg.classList.add('show','err'); return; }
+      vehicleId = veh.id;
+    }
+
+    const { data: wo, error: woErr } = await supabase.from('work_orders').insert({
+      customer_id: customerId, vehicle_id: vehicleId, status: 'pending', start_time: new Date().toISOString()
+    }).select('id').single();
+
+    if (woErr) { msg.textContent = woErr.message; msg.classList.add('show','err'); return; }
+    window.location.href = `workorder.html?id=${wo.id}`;
+  });
 </script>
 
 </body>
