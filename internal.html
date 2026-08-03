@@ -171,7 +171,7 @@
   <h2 class="section-title">Booking queue</h2>
   <div class="job-list" id="apptList"><p class="empty">Loading…</p></div>
 
-  <h2 class="section-title">Active work orders</h2>
+  <h2 class="section-title">Work orders <span style="font-weight:400;text-transform:none;letter-spacing:0">(all)</span></h2>
   <div class="job-list" id="woList"><p class="empty">Loading…</p></div>
 </main>
 
@@ -297,8 +297,8 @@
     const { data, error } = await supabase
       .from('work_orders')
       .select('*, customers(name, phone), vehicles(rego, vehicle)')
-      .neq('status', 'completed')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(30);
 
     if (error) {
       listEl.innerHTML = `<p class="empty">Couldn't load work orders: ${error.message}</p>`;
@@ -317,7 +317,7 @@
         </div>
         <div class="job-actions">
           <a class="action primary" href="workorder.html?id=${w.id}" style="text-decoration:none;display:inline-block">Open</a>
-          <button class="action" data-complete="${w.id}">Mark complete</button>
+          ${w.status !== 'completed' ? `<button class="action" data-complete="${w.id}">Mark complete</button>` : `<a class="action" href="invoice.html?id=${w.id}" style="text-decoration:none;display:inline-block">Invoice</a>`}
         </div>
       </div>
     `).join('');
