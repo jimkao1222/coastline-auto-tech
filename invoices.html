@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Invoices — Coastline Auto Tech</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --navy-deep:#0B2436; --navy-mid:#123249; --steel:#54727F;
+    --paper:#EDE7D8; --paper-line:#D8CFB8; --card:#F6F2E7;
+    --ink:#182228; --ink-soft:#4A5860;
+    --orange:#E4590A; --orange-dark:#B8430A;
+    --ok:#2F6B4F; --warn:#AE3226; --radius:2px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;}
+
+  header.top{background:linear-gradient(180deg,var(--navy-deep) 0%, var(--navy-mid) 100%);padding:18px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:relative;}
+  header.top::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg, transparent, rgba(228,89,10,.85), transparent);}
+  .wordmark{font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#F4EFE2;font-size:14px;}
+  .wordmark span{color:var(--orange);}
+  .top-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .navlink{font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#F4EFE2;text-decoration:none;border:1px solid var(--steel);padding:7px 14px;border-radius:var(--radius);background:transparent;cursor:pointer;}
+  .navlink:hover{border-color:var(--orange);color:var(--orange);}
+
+  #loginScreen{max-width:380px;margin:80px auto;padding:0 20px;}
+  .login-card{background:var(--card);border:1px solid var(--paper-line);border-radius:var(--radius);padding:28px 26px;box-shadow:0 18px 40px -18px rgba(11,36,54,.35);}
+  .login-card h1{font-family:'Oswald',sans-serif;font-size:20px;font-weight:600;margin:0 0 4px;color:var(--navy-deep);}
+  .login-card p{font-size:13px;color:var(--ink-soft);margin:0 0 20px;}
+  label{display:block;font-size:12.5px;font-weight:500;color:var(--ink-soft);margin-bottom:14px;}
+  input,select{display:block;width:100%;margin-top:6px;padding:9px 10px;background:#FFFDF8;border:1px solid var(--paper-line);border-radius:var(--radius);font-family:'Inter',sans-serif;font-size:14px;color:var(--ink);}
+  input:focus,select:focus{outline:2px solid var(--orange);outline-offset:1px;border-color:var(--orange);}
+  .stamp{font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.08em;text-transform:uppercase;font-size:13.5px;color:#fff;background:var(--orange);border:2px solid var(--orange);border-radius:var(--radius);padding:10px 18px;cursor:pointer;width:100%;}
+  .stamp:hover{background:var(--orange-dark);border-color:var(--orange-dark);}
+  .msg{margin-top:14px;padding:11px 13px;border-radius:var(--radius);font-size:13px;display:none;}
+  .msg.show{display:block;}
+  .msg.err{background:rgba(174,50,38,.1);color:var(--warn);border:1px solid rgba(174,50,38,.35);}
+
+  #dashboard{display:none;max-width:900px;margin:0 auto;padding:30px 20px 60px;}
+  .docket{background:var(--card);border:1px solid var(--paper-line);border-radius:var(--radius);box-shadow:0 18px 40px -18px rgba(11,36,54,.3);}
+  .section-title{font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:.09em;text-transform:uppercase;color:var(--navy-deep);padding:18px 22px 12px;}
+
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  th{text-align:left;font-family:'Oswald',sans-serif;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft);padding:8px 16px;border-bottom:1px dotted var(--paper-line);}
+  td{padding:10px 16px;border-bottom:1px dotted var(--paper-line);}
+  td.num{font-family:'IBM Plex Mono',monospace;text-align:right;}
+  td.mono{font-family:'IBM Plex Mono',monospace;}
+
+  select.status-select{width:auto;margin:0;padding:5px 8px;font-size:12px;}
+  .status-draft{color:var(--ink-soft);}
+  .status-sent{color:var(--orange-dark);}
+  .status-paid{color:var(--ok);}
+  .status-overdue{color:var(--warn);}
+  .status-cancelled{color:var(--ink-soft);text-decoration:line-through;}
+
+  a.view-link{font-family:'Oswald',sans-serif;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--navy-mid);text-decoration:none;border-bottom:1px solid var(--navy-mid);}
+  a.view-link:hover{color:var(--orange);border-color:var(--orange);}
+
+  .empty{padding:20px 22px;color:var(--ink-soft);font-size:13.5px;}
+  @media (max-width:700px){ table{font-size:12px;} th,td{padding:8px 10px;} }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wordmark">Coastline <span>Auto</span> Tech — Invoices</div>
+  <div class="top-right" id="topRight" style="display:none">
+    <a class="navlink" href="internal.html">Dashboard</a>
+    <a class="navlink" href="settings.html">Settings</a>
+    <button class="navlink" id="logoutBtn">Log out</button>
+  </div>
+</header>
+
+<section id="loginScreen">
+  <div class="login-card">
+    <h1>Staff login</h1>
+    <p>For workshop use only.</p>
+    <form id="loginForm">
+      <label>Email<input required type="email" id="email" autocomplete="username" /></label>
+      <label>Password<input required type="password" id="password" autocomplete="current-password" /></label>
+      <button type="submit" class="stamp" id="loginBtn">Log in</button>
+      <div class="msg" id="loginMsg"></div>
+    </form>
+  </div>
+</section>
+
+<main id="dashboard">
+  <div class="docket">
+    <h3 class="section-title">All invoices</h3>
+    <table>
+      <thead><tr><th>Invoice #</th><th>Date</th><th>Customer</th><th class="num">Total</th><th>Status</th><th></th></tr></thead>
+      <tbody id="invBody"></tbody>
+    </table>
+  </div>
+</main>
+
+<script type="module">
+  import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+  const SUPABASE_URL = "https://kjytblqvkwmyrudnksdp.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtqeXRibHF2a3dteXJ1ZG5rc2RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0OTEzMzcsImV4cCI6MjEwMTA2NzMzN30.4lONpoNVUzGQnf8ieBL8m6fa_ZmIaCIpNaVHEKOj3BI";
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const loginScreen = document.getElementById('loginScreen');
+  const dashboard = document.getElementById('dashboard');
+  const topRight = document.getElementById('topRight');
+  const loginForm = document.getElementById('loginForm');
+  const loginBtn = document.getElementById('loginBtn');
+  const loginMsg = document.getElementById('loginMsg');
+
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    loginBtn.disabled = true; loginBtn.textContent = 'Logging in…';
+    loginMsg.className = 'msg';
+    const { error } = await supabase.auth.signInWithPassword({
+      email: document.getElementById('email').value,
+      password: document.getElementById('password').value
+    });
+    if (error) {
+      loginMsg.textContent = 'Wrong email or password.';
+      loginMsg.classList.add('show','err');
+      loginBtn.disabled = false; loginBtn.textContent = 'Log in';
+    }
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', async () => { await supabase.auth.signOut(); });
+
+  supabase.auth.onAuthStateChange((_e, session) => {
+    if (session) {
+      loginScreen.style.display = 'none';
+      dashboard.style.display = 'block';
+      topRight.style.display = 'flex';
+      loadInvoices();
+    } else {
+      loginScreen.style.display = 'block';
+      dashboard.style.display = 'none';
+      topRight.style.display = 'none';
+    }
+  });
+
+  async function loadInvoices() {
+    const body = document.getElementById('invBody');
+    const { data, error } = await supabase
+      .from('invoices')
+      .select('*, customers(name)')
+      .order('invoice_date', { ascending: false });
+
+    if (error) {
+      body.innerHTML = `<tr><td colspan="6" class="empty">Couldn't load invoices: ${error.message}</td></tr>`;
+      return;
+    }
+    if (!data.length) {
+      body.innerHTML = '<tr><td colspan="6" class="empty">No invoices saved yet.</td></tr>';
+      return;
+    }
+
+    body.innerHTML = data.map(inv => `
+      <tr>
+        <td class="mono">${inv.invoice_number}</td>
+        <td>${inv.invoice_date}</td>
+        <td>${inv.customers?.name ?? 'Unknown'}</td>
+        <td class="num">$${Number(inv.total).toFixed(2)}</td>
+        <td>
+          <select class="status-select status-${inv.status}" data-id="${inv.id}">
+            <option value="draft" ${inv.status==='draft'?'selected':''}>Draft</option>
+            <option value="sent" ${inv.status==='sent'?'selected':''}>Sent</option>
+            <option value="paid" ${inv.status==='paid'?'selected':''}>Paid</option>
+            <option value="overdue" ${inv.status==='overdue'?'selected':''}>Overdue</option>
+            <option value="cancelled" ${inv.status==='cancelled'?'selected':''}>Cancelled</option>
+          </select>
+        </td>
+        <td><a class="view-link" href="invoice.html?id=${inv.work_order_id}">View / Print</a></td>
+      </tr>
+    `).join('');
+
+    body.querySelectorAll('.status-select').forEach(sel => {
+      sel.addEventListener('change', async () => {
+        const newStatus = sel.value;
+        const paidFields = newStatus === 'paid' ? { paid_date: new Date().toISOString().split('T')[0] } : {};
+        await supabase.from('invoices').update({ status: newStatus, ...paidFields }).eq('id', sel.dataset.id);
+        sel.className = `status-select status-${newStatus}`;
+      });
+    });
+  }
+</script>
+
+</body>
+</html>
