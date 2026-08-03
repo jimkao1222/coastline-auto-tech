@@ -84,13 +84,24 @@
   .sum-row.profit.bad{color:var(--warn);}
 
   @media (max-width:560px){ .row3{grid-template-columns:1fr;} .row2{grid-template-columns:1fr;} }
+
+  @media print{
+    body{background:#fff;}
+    header.top, #loginScreen, .add-form, .status-row, .rm, .no-print{display:none !important;}
+    #dashboard{display:block !important;max-width:none;margin:0;padding:0;}
+    .docket{box-shadow:none;border:none;}
+    @page{size:A4;margin:15mm;}
+  }
 </style>
 </head>
 <body>
 
 <header class="top">
   <div class="wordmark">Coastline <span>Auto</span> Tech — Workshop</div>
-  <a class="back" href="internal.html">← Dashboard</a>
+  <div style="display:flex;gap:10px">
+    <button class="back" id="printWoBtn" style="background:none">Print</button>
+    <a class="back" href="internal.html">← Dashboard</a>
+  </div>
 </header>
 
 <section id="loginScreen">
@@ -126,6 +137,7 @@
         </select>
       </label>
       <button class="stamp" id="updateStatusBtn" style="margin-top:20px">Update</button>
+      <a class="stamp" id="invoiceLink" href="#" style="margin-top:20px;text-decoration:none;background:var(--navy-mid);border-color:var(--navy-mid);display:inline-block;text-align:center">Invoice</a>
     </div>
 
     <h3 class="section-title">Items on this job</h3>
@@ -214,6 +226,8 @@
     }
   });
 
+  document.getElementById('printWoBtn').addEventListener('click', () => window.print());
+
   let partsCache = [];
   let ratesCache = [];
 
@@ -260,6 +274,8 @@
       await supabase.from('work_orders').update({ status: newStatus }).eq('id', workOrderId);
       document.getElementById('statusPill').textContent = newStatus;
     };
+
+    document.getElementById('invoiceLink').href = `invoice.html?id=${workOrderId}`;
 
     await loadItems();
   }
