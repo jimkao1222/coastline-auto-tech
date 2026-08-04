@@ -68,6 +68,12 @@
   .edit-btn{color:var(--steel);}
   .del-btn{color:var(--warn);}
 
+  td.editable{cursor:text;border-bottom:1px dotted var(--paper-line);transition:background .15s;}
+  td.editable:hover{background:rgba(228,89,10,.06);}
+  td.editable:focus{outline:2px solid var(--orange);outline-offset:-2px;background:#FFFDF8;}
+  td.editable.saved{background:rgba(47,107,79,.18);}
+  td.editable.save-err{background:rgba(174,50,38,.18);}
+
   .add-form{padding:16px 22px 22px;border-top:1px dashed var(--paper-line);}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
   .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
@@ -122,7 +128,7 @@
         <tbody id="customersBody"></tbody>
       </table>
       <div class="add-form">
-        <h3 class="section-title" style="padding:0 0 12px" id="custFormTitle">Add new customer</h3>
+        <h3 class="section-title" style="padding:0 0 12px">Add new customer</h3>
         <label>Name<input id="c_name" /></label>
         <div class="row2">
           <label>Phone<input id="c_phone" /></label>
@@ -130,8 +136,7 @@
         </div>
         <label>Address<input id="c_address" /></label>
         <div class="form-actions">
-          <button class="stamp" id="c_save">Save customer</button>
-          <button class="stamp ghost" id="c_cancel" style="display:none">Cancel edit</button>
+          <button class="stamp" id="c_save">Add customer</button>
         </div>
         <div class="msg" id="c_msg"></div>
       </div>
@@ -143,11 +148,11 @@
     <div class="docket">
       <h3 class="section-title">Parts inventory</h3>
       <table>
-        <thead><tr><th>Name</th><th>Code</th><th class="num">Cost</th><th class="num">Sell</th><th>Supplier</th><th class="num">Stock</th><th></th></tr></thead>
+        <thead><tr><th>Name</th><th>Code</th><th class="num">Cost ($)</th><th class="num">Sell ($)</th><th>Supplier</th><th class="num">Stock</th><th></th></tr></thead>
         <tbody id="partsBody"></tbody>
       </table>
       <div class="add-form">
-        <h3 class="section-title" style="padding:0 0 12px" id="partFormTitle">Add new part</h3>
+        <h3 class="section-title" style="padding:0 0 12px">Add new part</h3>
         <label>Name<input id="p_name" /></label>
         <div class="row3">
           <label>Code<input id="p_code" /></label>
@@ -160,8 +165,7 @@
           <label>Min stock alert<input id="p_min" type="number" value="5" /></label>
         </div>
         <div class="form-actions">
-          <button class="stamp" id="p_save">Save part</button>
-          <button class="stamp ghost" id="p_cancel" style="display:none">Cancel edit</button>
+          <button class="stamp" id="p_save">Add part</button>
         </div>
         <div class="msg" id="p_msg"></div>
       </div>
@@ -173,11 +177,11 @@
     <div class="docket">
       <h3 class="section-title">Service list</h3>
       <table>
-        <thead><tr><th>Name</th><th>Code</th><th class="num">Base price</th><th class="num">Est. hrs</th><th>Category</th><th></th></tr></thead>
+        <thead><tr><th>Name</th><th>Code</th><th class="num">Base price ($)</th><th class="num">Est. hrs</th><th>Category</th><th></th></tr></thead>
         <tbody id="servicesBody"></tbody>
       </table>
       <div class="add-form">
-        <h3 class="section-title" style="padding:0 0 12px" id="svcFormTitle">Add new service</h3>
+        <h3 class="section-title" style="padding:0 0 12px">Add new service</h3>
         <label>Name<input id="s_name" /></label>
         <div class="row3">
           <label>Code<input id="s_code" /></label>
@@ -186,8 +190,7 @@
         </div>
         <label>Category<input id="s_category" /></label>
         <div class="form-actions">
-          <button class="stamp" id="s_save">Save service</button>
-          <button class="stamp ghost" id="s_cancel" style="display:none">Cancel edit</button>
+          <button class="stamp" id="s_save">Add service</button>
         </div>
         <div class="msg" id="s_msg"></div>
       </div>
@@ -199,18 +202,17 @@
     <div class="docket">
       <h3 class="section-title">Hourly rates</h3>
       <table>
-        <thead><tr><th>Category</th><th class="num">Rate / hr</th><th></th></tr></thead>
+        <thead><tr><th>Category</th><th class="num">Rate / hr ($)</th><th></th></tr></thead>
         <tbody id="ratesBody"></tbody>
       </table>
       <div class="add-form">
-        <h3 class="section-title" style="padding:0 0 12px" id="rateFormTitle">Add new rate</h3>
+        <h3 class="section-title" style="padding:0 0 12px">Add new rate</h3>
         <div class="row2">
           <label>Category<input id="r_category" /></label>
           <label>Rate ($/hr)<input id="r_rate" type="number" step="0.01" /></label>
         </div>
         <div class="form-actions">
-          <button class="stamp" id="r_save">Save rate</button>
-          <button class="stamp ghost" id="r_cancel" style="display:none">Cancel edit</button>
+          <button class="stamp" id="r_save">Add rate</button>
         </div>
         <div class="msg" id="r_msg"></div>
       </div>
@@ -275,9 +277,49 @@
     el.className = 'msg show ' + (ok ? 'ok' : 'err');
   }
 
-  // ================= CUSTOMERS =================
-  let editingCustomerId = null;
+  // ---- Generic inline cell editing ----
+  function bindEditableCells(container) {
+    container.querySelectorAll('td.editable').forEach(td => {
+      td.dataset.original = td.textContent.trim();
 
+      td.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); td.blur(); }
+        if (e.key === 'Escape') { e.preventDefault(); td.textContent = td.dataset.original; td.blur(); }
+      });
+
+      td.addEventListener('blur', async () => {
+        const raw = td.textContent.trim();
+        if (raw === td.dataset.original) return;
+
+        let value = raw;
+        if (td.dataset.type === 'number') {
+          const n = parseFloat(raw);
+          if (isNaN(n)) { td.textContent = td.dataset.original; return; }
+          value = n;
+        } else if (raw === '') {
+          value = null;
+        }
+
+        const { error } = await supabase
+          .from(td.dataset.table)
+          .update({ [td.dataset.field]: value })
+          .eq('id', td.dataset.id);
+
+        if (error) {
+          td.classList.add('save-err');
+          td.textContent = td.dataset.original;
+          setTimeout(() => td.classList.remove('save-err'), 1200);
+          return;
+        }
+
+        td.dataset.original = (td.dataset.type === 'number') ? Number(value).toString() : (value ?? '');
+        td.classList.add('saved');
+        setTimeout(() => td.classList.remove('saved'), 900);
+      });
+    });
+  }
+
+  // ================= CUSTOMERS =================
   async function loadCustomers() {
     const showArchived = document.getElementById('showArchived').checked;
     let query = supabase.from('customers').select('*').order('name');
@@ -287,28 +329,14 @@
     const body = document.getElementById('customersBody');
     body.innerHTML = (data || []).map(c => `
       <tr style="${c.is_active === false ? 'opacity:.55' : ''}">
-        <td>${c.name}${c.is_active === false ? ' <span style="font-size:11px;color:var(--warn)">(archived)</span>' : ''}</td>
-        <td>${c.phone ?? ''}</td>
-        <td>${c.address ?? ''}</td>
-        <td>${c.email ?? ''}</td>
-        <td><div class="rowbtns">
-          <button class="edit-btn" data-edit="${c.id}">Edit</button>
-          ${c.is_active === false
-            ? `<button class="edit-btn" data-restore="${c.id}">Restore</button>`
-            : `<button class="del-btn" data-archive="${c.id}">Archive</button>`}
-        </div></td>
+        <td class="editable" contenteditable="${c.is_active !== false}" data-table="customers" data-id="${c.id}" data-field="name" data-type="text">${c.name}</td>
+        <td class="editable" contenteditable="${c.is_active !== false}" data-table="customers" data-id="${c.id}" data-field="phone" data-type="text">${c.phone ?? ''}</td>
+        <td class="editable" contenteditable="${c.is_active !== false}" data-table="customers" data-id="${c.id}" data-field="address" data-type="text">${c.address ?? ''}</td>
+        <td class="editable" contenteditable="${c.is_active !== false}" data-table="customers" data-id="${c.id}" data-field="email" data-type="text">${c.email ?? ''}</td>
+        <td>${c.is_active === false ? `<span style="font-size:11px;color:var(--warn)">archived</span> <button class="edit-btn" data-restore="${c.id}">Restore</button>` : `<button class="del-btn" data-archive="${c.id}">Archive</button>`}</td>
       </tr>`).join('') || '<tr><td colspan="5" style="color:var(--ink-soft)">No customers.</td></tr>';
 
-    body.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => {
-      const c = data.find(x => x.id == b.dataset.edit);
-      editingCustomerId = c.id;
-      document.getElementById('c_name').value = c.name;
-      document.getElementById('c_phone').value = c.phone ?? '';
-      document.getElementById('c_email').value = c.email ?? '';
-      document.getElementById('c_address').value = c.address ?? '';
-      document.getElementById('custFormTitle').textContent = 'Edit customer';
-      document.getElementById('c_cancel').style.display = 'inline-block';
-    }));
+    bindEditableCells(body);
     body.querySelectorAll('[data-archive]').forEach(b => b.addEventListener('click', async () => {
       if (!confirm('Archive this customer? They will be hidden from lists, but all their history (vehicles, work orders, invoices) stays safe.')) return;
       await supabase.from('customers').update({ is_active: false }).eq('id', b.dataset.archive);
@@ -323,12 +351,8 @@
   document.getElementById('showArchived').addEventListener('change', loadCustomers);
 
   function resetCustomerForm() {
-    editingCustomerId = null;
     ['c_name','c_phone','c_email','c_address'].forEach(id => document.getElementById(id).value = '');
-    document.getElementById('custFormTitle').textContent = 'Add new customer';
-    document.getElementById('c_cancel').style.display = 'none';
   }
-  document.getElementById('c_cancel').addEventListener('click', resetCustomerForm);
 
   document.getElementById('c_save').addEventListener('click', async () => {
     const msg = document.getElementById('c_msg'); msg.className = 'msg';
@@ -340,46 +364,30 @@
     };
     if (!payload.name) { showMsg(msg, 'Name is required.', false); return; }
 
-    const { error } = editingCustomerId
-      ? await supabase.from('customers').update(payload).eq('id', editingCustomerId)
-      : await supabase.from('customers').insert({ ...payload, first_date: new Date().toISOString().split('T')[0] });
+    const { error } = await supabase.from('customers').insert({ ...payload, first_date: new Date().toISOString().split('T')[0] });
 
     if (error) { showMsg(msg, error.message, false); return; }
-    showMsg(msg, 'Saved.', true);
+    showMsg(msg, 'Customer added.', true);
     resetCustomerForm();
     loadCustomers();
   });
 
   // ================= PARTS =================
-  let editingPartId = null;
   async function loadParts() {
     const { data } = await supabase.from('parts_inventory').select('*').order('part_name');
     const body = document.getElementById('partsBody');
     body.innerHTML = (data || []).map(p => `
       <tr>
-        <td>${p.part_name}</td><td>${p.part_code ?? ''}</td>
-        <td class="num">$${Number(p.cost_price).toFixed(2)}</td>
-        <td class="num">$${Number(p.sell_price).toFixed(2)}</td>
-        <td>${p.supplier ?? ''}</td><td class="num">${p.quantity}</td>
-        <td><div class="rowbtns">
-          <button class="edit-btn" data-edit="${p.id}">Edit</button>
-          <button class="del-btn" data-del="${p.id}">Delete</button>
-        </div></td>
+        <td class="editable" contenteditable="true" data-table="parts_inventory" data-id="${p.id}" data-field="part_name" data-type="text">${p.part_name}</td>
+        <td class="editable" contenteditable="true" data-table="parts_inventory" data-id="${p.id}" data-field="part_code" data-type="text">${p.part_code ?? ''}</td>
+        <td class="num editable" contenteditable="true" data-table="parts_inventory" data-id="${p.id}" data-field="cost_price" data-type="number">${Number(p.cost_price).toFixed(2)}</td>
+        <td class="num editable" contenteditable="true" data-table="parts_inventory" data-id="${p.id}" data-field="sell_price" data-type="number">${Number(p.sell_price).toFixed(2)}</td>
+        <td class="editable" contenteditable="true" data-table="parts_inventory" data-id="${p.id}" data-field="supplier" data-type="text">${p.supplier ?? ''}</td>
+        <td class="num editable" contenteditable="true" data-table="parts_inventory" data-id="${p.id}" data-field="quantity" data-type="number">${p.quantity}</td>
+        <td><button class="del-btn" data-del="${p.id}">Delete</button></td>
       </tr>`).join('') || '<tr><td colspan="7" style="color:var(--ink-soft)">No parts yet.</td></tr>';
 
-    body.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => {
-      const p = data.find(x => x.id == b.dataset.edit);
-      editingPartId = p.id;
-      document.getElementById('p_name').value = p.part_name;
-      document.getElementById('p_code').value = p.part_code ?? '';
-      document.getElementById('p_cost').value = p.cost_price;
-      document.getElementById('p_sell').value = p.sell_price;
-      document.getElementById('p_supplier').value = p.supplier ?? '';
-      document.getElementById('p_qty').value = p.quantity;
-      document.getElementById('p_min').value = p.min_stock_level;
-      document.getElementById('partFormTitle').textContent = 'Edit part';
-      document.getElementById('p_cancel').style.display = 'inline-block';
-    }));
+    bindEditableCells(body);
     body.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', async () => {
       if (!confirm('Delete this part? This cannot be undone.')) return;
       await supabase.from('parts_inventory').delete().eq('id', b.dataset.del);
@@ -388,14 +396,10 @@
   }
 
   function resetPartForm() {
-    editingPartId = null;
     ['p_name','p_code','p_cost','p_sell','p_supplier'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('p_qty').value = 0;
     document.getElementById('p_min').value = 5;
-    document.getElementById('partFormTitle').textContent = 'Add new part';
-    document.getElementById('p_cancel').style.display = 'none';
   }
-  document.getElementById('p_cancel').addEventListener('click', resetPartForm);
 
   document.getElementById('p_save').addEventListener('click', async () => {
     const msg = document.getElementById('p_msg'); msg.className = 'msg';
@@ -410,43 +414,29 @@
     };
     if (!payload.part_name) { showMsg(msg, 'Name is required.', false); return; }
 
-    const { error } = editingPartId
-      ? await supabase.from('parts_inventory').update(payload).eq('id', editingPartId)
-      : await supabase.from('parts_inventory').insert(payload);
+    const { error } = await supabase.from('parts_inventory').insert(payload);
 
     if (error) { showMsg(msg, error.message, false); return; }
-    showMsg(msg, 'Saved.', true);
+    showMsg(msg, 'Part added.', true);
     resetPartForm();
     loadParts();
   });
 
   // ================= SERVICES =================
-  let editingServiceId = null;
   async function loadServices() {
     const { data } = await supabase.from('services').select('*').order('service_name');
     const body = document.getElementById('servicesBody');
     body.innerHTML = (data || []).map(s => `
       <tr>
-        <td>${s.service_name}</td><td>${s.service_code ?? ''}</td>
-        <td class="num">$${Number(s.base_price).toFixed(2)}</td>
-        <td class="num">${s.estimated_hours ?? ''}</td><td>${s.category ?? ''}</td>
-        <td><div class="rowbtns">
-          <button class="edit-btn" data-edit="${s.id}">Edit</button>
-          <button class="del-btn" data-del="${s.id}">Delete</button>
-        </div></td>
+        <td class="editable" contenteditable="true" data-table="services" data-id="${s.id}" data-field="service_name" data-type="text">${s.service_name}</td>
+        <td class="editable" contenteditable="true" data-table="services" data-id="${s.id}" data-field="service_code" data-type="text">${s.service_code ?? ''}</td>
+        <td class="num editable" contenteditable="true" data-table="services" data-id="${s.id}" data-field="base_price" data-type="number">${Number(s.base_price).toFixed(2)}</td>
+        <td class="num editable" contenteditable="true" data-table="services" data-id="${s.id}" data-field="estimated_hours" data-type="number">${s.estimated_hours ?? ''}</td>
+        <td class="editable" contenteditable="true" data-table="services" data-id="${s.id}" data-field="category" data-type="text">${s.category ?? ''}</td>
+        <td><button class="del-btn" data-del="${s.id}">Delete</button></td>
       </tr>`).join('') || '<tr><td colspan="6" style="color:var(--ink-soft)">No services yet.</td></tr>';
 
-    body.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => {
-      const s = data.find(x => x.id == b.dataset.edit);
-      editingServiceId = s.id;
-      document.getElementById('s_name').value = s.service_name;
-      document.getElementById('s_code').value = s.service_code ?? '';
-      document.getElementById('s_price').value = s.base_price;
-      document.getElementById('s_hours').value = s.estimated_hours ?? '';
-      document.getElementById('s_category').value = s.category ?? '';
-      document.getElementById('svcFormTitle').textContent = 'Edit service';
-      document.getElementById('s_cancel').style.display = 'inline-block';
-    }));
+    bindEditableCells(body);
     body.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', async () => {
       if (!confirm('Delete this service?')) return;
       await supabase.from('services').delete().eq('id', b.dataset.del);
@@ -455,12 +445,8 @@
   }
 
   function resetServiceForm() {
-    editingServiceId = null;
     ['s_name','s_code','s_price','s_hours','s_category'].forEach(id => document.getElementById(id).value = '');
-    document.getElementById('svcFormTitle').textContent = 'Add new service';
-    document.getElementById('s_cancel').style.display = 'none';
   }
-  document.getElementById('s_cancel').addEventListener('click', resetServiceForm);
 
   document.getElementById('s_save').addEventListener('click', async () => {
     const msg = document.getElementById('s_msg'); msg.className = 'msg';
@@ -473,38 +459,26 @@
     };
     if (!payload.service_name) { showMsg(msg, 'Name is required.', false); return; }
 
-    const { error } = editingServiceId
-      ? await supabase.from('services').update(payload).eq('id', editingServiceId)
-      : await supabase.from('services').insert(payload);
+    const { error } = await supabase.from('services').insert(payload);
 
     if (error) { showMsg(msg, error.message, false); return; }
-    showMsg(msg, 'Saved.', true);
+    showMsg(msg, 'Service added.', true);
     resetServiceForm();
     loadServices();
   });
 
   // ================= RATES =================
-  let editingRateId = null;
   async function loadRates() {
     const { data } = await supabase.from('hourly_rates').select('*').order('service_category');
     const body = document.getElementById('ratesBody');
     body.innerHTML = (data || []).map(r => `
       <tr>
-        <td>${r.service_category}</td><td class="num">$${Number(r.hourly_rate).toFixed(2)}</td>
-        <td><div class="rowbtns">
-          <button class="edit-btn" data-edit="${r.id}">Edit</button>
-          <button class="del-btn" data-del="${r.id}">Delete</button>
-        </div></td>
+        <td class="editable" contenteditable="true" data-table="hourly_rates" data-id="${r.id}" data-field="service_category" data-type="text">${r.service_category}</td>
+        <td class="num editable" contenteditable="true" data-table="hourly_rates" data-id="${r.id}" data-field="hourly_rate" data-type="number">${Number(r.hourly_rate).toFixed(2)}</td>
+        <td><button class="del-btn" data-del="${r.id}">Delete</button></td>
       </tr>`).join('') || '<tr><td colspan="3" style="color:var(--ink-soft)">No rates yet.</td></tr>';
 
-    body.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => {
-      const r = data.find(x => x.id == b.dataset.edit);
-      editingRateId = r.id;
-      document.getElementById('r_category').value = r.service_category;
-      document.getElementById('r_rate').value = r.hourly_rate;
-      document.getElementById('rateFormTitle').textContent = 'Edit rate';
-      document.getElementById('r_cancel').style.display = 'inline-block';
-    }));
+    bindEditableCells(body);
     body.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', async () => {
       if (!confirm('Delete this rate category?')) return;
       await supabase.from('hourly_rates').delete().eq('id', b.dataset.del);
@@ -513,13 +487,9 @@
   }
 
   function resetRateForm() {
-    editingRateId = null;
     document.getElementById('r_category').value = '';
     document.getElementById('r_rate').value = '';
-    document.getElementById('rateFormTitle').textContent = 'Add new rate';
-    document.getElementById('r_cancel').style.display = 'none';
   }
-  document.getElementById('r_cancel').addEventListener('click', resetRateForm);
 
   document.getElementById('r_save').addEventListener('click', async () => {
     const msg = document.getElementById('r_msg'); msg.className = 'msg';
@@ -527,12 +497,10 @@
     const rate = parseFloat(document.getElementById('r_rate').value) || 0;
     if (!category) { showMsg(msg, 'Category is required.', false); return; }
 
-    const { error } = editingRateId
-      ? await supabase.from('hourly_rates').update({ service_category: category, hourly_rate: rate }).eq('id', editingRateId)
-      : await supabase.from('hourly_rates').insert({ service_category: category, hourly_rate: rate, effective_date: new Date().toISOString().split('T')[0] });
+    const { error } = await supabase.from('hourly_rates').insert({ service_category: category, hourly_rate: rate, effective_date: new Date().toISOString().split('T')[0] });
 
     if (error) { showMsg(msg, error.message, false); return; }
-    showMsg(msg, 'Saved.', true);
+    showMsg(msg, 'Rate added.', true);
     resetRateForm();
     loadRates();
   });
