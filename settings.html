@@ -104,13 +104,42 @@
 
 <main id="dashboard">
   <div class="tabs">
-    <button data-tab="parts" class="active">Parts</button>
+    <button data-tab="customers" class="active">Customers</button>
+    <button data-tab="parts">Parts</button>
     <button data-tab="services">Services</button>
     <button data-tab="rates">Hourly rates</button>
   </div>
 
+  <!-- ===== CUSTOMERS ===== -->
+  <div class="panel active" id="panel-customers">
+    <div class="docket">
+      <h3 class="section-title">Customers</h3>
+      <label style="display:flex;align-items:center;gap:8px;padding:0 22px 10px;font-size:12.5px">
+        <input type="checkbox" id="showArchived" style="width:auto;margin:0" /> Show archived customers
+      </label>
+      <table>
+        <thead><tr><th>Name</th><th>Phone</th><th>Address</th><th>Email</th><th></th></tr></thead>
+        <tbody id="customersBody"></tbody>
+      </table>
+      <div class="add-form">
+        <h3 class="section-title" style="padding:0 0 12px" id="custFormTitle">Add new customer</h3>
+        <label>Name<input id="c_name" /></label>
+        <div class="row2">
+          <label>Phone<input id="c_phone" /></label>
+          <label>Email<input id="c_email" type="email" /></label>
+        </div>
+        <label>Address<input id="c_address" /></label>
+        <div class="form-actions">
+          <button class="stamp" id="c_save">Save customer</button>
+          <button class="stamp ghost" id="c_cancel" style="display:none">Cancel edit</button>
+        </div>
+        <div class="msg" id="c_msg"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- ===== PARTS ===== -->
-  <div class="panel active" id="panel-parts">
+  <div class="panel" id="panel-parts">
     <div class="docket">
       <h3 class="section-title">Parts inventory</h3>
       <table>
@@ -225,7 +254,7 @@
       loginScreen.style.display = 'none';
       dashboard.style.display = 'block';
       topRight.style.display = 'flex';
-      loadParts(); loadServices(); loadRates();
+      loadParts(); loadServices(); loadRates(); loadCustomers();
     } else {
       loginScreen.style.display = 'block';
       dashboard.style.display = 'none';
@@ -245,6 +274,81 @@
     el.textContent = text;
     el.className = 'msg show ' + (ok ? 'ok' : 'err');
   }
+
+  // ================= CUSTOMERS =================
+  let editingCustomerId = null;
+
+  async function loadCustomers() {
+    const showArchived = document.getElementById('showArchived').checked;
+    let query = supabase.from('customers').select('*').order('name');
+    if (!showArchived) query = query.eq('is_active', true);
+    const { data } = await query;
+
+    const body = document.getElementById('customersBody');
+    body.innerHTML = (data || []).map(c => `
+      <tr style="${c.is_active === false ? 'opacity:.55' : ''}">
+        <td>${c.name}${c.is_active === false ? ' <span style="font-size:11px;color:var(--warn)">(archived)</span>' : ''}</td>
+        <td>${c.phone ?? ''}</td>
+        <td>${c.address ?? ''}</td>
+        <td>${c.email ?? ''}</td>
+        <td><div class="rowbtns">
+          <button class="edit-btn" data-edit="${c.id}">Edit</button>
+          ${c.is_active === false
+            ? `<button class="edit-btn" data-restore="${c.id}">Restore</button>`
+            : `<button class="del-btn" data-archive="${c.id}">Archive</button>`}
+        </div></td>
+      </tr>`).join('') || '<tr><td colspan="5" style="color:var(--ink-soft)">No customers.</td></tr>';
+
+    body.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => {
+      const c = data.find(x => x.id == b.dataset.edit);
+      editingCustomerId = c.id;
+      document.getElementById('c_name').value = c.name;
+      document.getElementById('c_phone').value = c.phone ?? '';
+      document.getElementById('c_email').value = c.email ?? '';
+      document.getElementById('c_address').value = c.address ?? '';
+      document.getElementById('custFormTitle').textContent = 'Edit customer';
+      document.getElementById('c_cancel').style.display = 'inline-block';
+    }));
+    body.querySelectorAll('[data-archive]').forEach(b => b.addEventListener('click', async () => {
+      if (!confirm('Archive this customer? They will be hidden from lists, but all their history (vehicles, work orders, invoices) stays safe.')) return;
+      await supabase.from('customers').update({ is_active: false }).eq('id', b.dataset.archive);
+      loadCustomers();
+    }));
+    body.querySelectorAll('[data-restore]').forEach(b => b.addEventListener('click', async () => {
+      await supabase.from('customers').update({ is_active: true }).eq('id', b.dataset.restore);
+      loadCustomers();
+    }));
+  }
+
+  document.getElementById('showArchived').addEventListener('change', loadCustomers);
+
+  function resetCustomerForm() {
+    editingCustomerId = null;
+    ['c_name','c_phone','c_email','c_address'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('custFormTitle').textContent = 'Add new customer';
+    document.getElementById('c_cancel').style.display = 'none';
+  }
+  document.getElementById('c_cancel').addEventListener('click', resetCustomerForm);
+
+  document.getElementById('c_save').addEventListener('click', async () => {
+    const msg = document.getElementById('c_msg'); msg.className = 'msg';
+    const payload = {
+      name: document.getElementById('c_name').value,
+      phone: document.getElementById('c_phone').value || null,
+      email: document.getElementById('c_email').value || null,
+      address: document.getElementById('c_address').value || null
+    };
+    if (!payload.name) { showMsg(msg, 'Name is required.', false); return; }
+
+    const { error } = editingCustomerId
+      ? await supabase.from('customers').update(payload).eq('id', editingCustomerId)
+      : await supabase.from('customers').insert({ ...payload, first_date: new Date().toISOString().split('T')[0] });
+
+    if (error) { showMsg(msg, error.message, false); return; }
+    showMsg(msg, 'Saved.', true);
+    resetCustomerForm();
+    loadCustomers();
+  });
 
   // ================= PARTS =================
   let editingPartId = null;
