@@ -45,6 +45,18 @@
   .greet{font-size:22px;font-weight:600;margin:0 0 4px;color:var(--ink);}
   .greet-sub{font-size:13.5px;color:var(--ink-soft);margin:0 0 30px;}
 
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px;}
+  .stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 14px;text-align:center;}
+  .stat-card .icon{font-size:20px;color:var(--blue);}
+  .stat-card .num{font-size:24px;font-weight:600;margin:8px 0 2px;color:var(--ink);}
+  .stat-card .label{font-size:11.5px;color:var(--ink-soft);}
+  .stat-card.warn .num{color:var(--coral);}
+
+  .activity{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:8px 20px;margin-bottom:32px;}
+  .activity-row{display:flex;justify-content:space-between;font-size:13px;padding:11px 0;border-bottom:1px solid var(--border);color:var(--ink);}
+  .activity-row:last-child{border-bottom:none;}
+  .activity-row .when{color:var(--ink-soft);font-size:12px;}
+
   .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
   .tile{
     background:var(--card);border:1px solid var(--border);border-radius:12px;
@@ -57,7 +69,7 @@
   .tile .t{font-size:15px;font-weight:600;color:var(--ink);}
   .tile .d{font-size:12.5px;color:var(--ink-soft);line-height:1.5;}
 
-  @media (max-width:700px){ .grid{grid-template-columns:1fr;} main{padding:28px 20px;} }
+  @media (max-width:700px){ .grid{grid-template-columns:1fr;} .stats{grid-template-columns:repeat(2,1fr);} main{padding:28px 20px;} }
 </style>
 </head>
 <body>
@@ -88,6 +100,18 @@
   <main>
     <p class="greet">Where to?</p>
     <p class="greet-sub">Everything for running the workshop, in one place.</p>
+
+    <div class="stats" id="statsRow">
+      <div class="stat-card"><i class="ti ti-calendar-event icon" aria-hidden="true"></i><p class="num" id="statPending">—</p><p class="label">Pending bookings</p></div>
+      <div class="stat-card"><i class="ti ti-tool icon" aria-hidden="true"></i><p class="num" id="statActive">—</p><p class="label">Active work orders</p></div>
+      <div class="stat-card"><i class="ti ti-receipt-2 icon" aria-hidden="true"></i><p class="num" id="statUnpaid">—</p><p class="label">Unpaid invoices</p></div>
+      <div class="stat-card" id="lowStockCard"><i class="ti ti-package icon" aria-hidden="true"></i><p class="num" id="statLowStock">—</p><p class="label">Low stock parts</p></div>
+    </div>
+
+    <div class="activity">
+      <div class="activity-row" style="font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:var(--ink-soft);border-bottom:1px solid var(--border)">Recent activity</div>
+      <div id="activityList"><div class="activity-row"><span>Loading…</span></div></div>
+    </div>
 
     <div class="grid">
       <a class="tile" href="internal.html">
@@ -142,11 +166,53 @@
     if (session) {
       loginScreen.style.display = 'none';
       appShell.style.display = 'block';
+      loadStats();
+      loadActivity();
     } else {
       loginScreen.style.display = 'block';
       appShell.style.display = 'none';
     }
   });
+
+  async function loadStats() {
+    const { count: pending } = await supabase.from('appointments').select('id', { count: 'exact', head: true }).eq('status', 'pending');
+    document.getElementById('statPending').textContent = pending ?? 0;
+
+    const { count: active } = await supabase.from('work_orders').select('id', { count: 'exact', head: true }).neq('status', 'completed');
+    document.getElementById('statActive').textContent = active ?? 0;
+
+    const { data: unpaidInv } = await supabase.from('invoices').select('total').in('status', ['draft', 'sent', 'overdue']);
+    const unpaidTotal = (unpaidInv || []).reduce((s, i) => s + Number(i.total), 0);
+    document.getElementById('statUnpaid').textContent = `$${unpaidTotal.toFixed(0)}`;
+
+    const { data: parts } = await supabase.from('parts_inventory').select('quantity, min_stock_level');
+    const low = (parts || []).filter(p => p.quantity <= p.min_stock_level).length;
+    document.getElementById('statLowStock').textContent = low;
+    document.getElementById('lowStockCard').classList.toggle('warn', low > 0);
+  }
+
+  async function loadActivity() {
+    const { data } = await supabase
+      .from('work_orders')
+      .select('id, status, created_at, customers(name), vehicles(vehicle)')
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    const listEl = document.getElementById('activityList');
+    if (!data || !data.length) {
+      listEl.innerHTML = '<div class="activity-row"><span style="color:var(--ink-soft)">No activity yet.</span></div>';
+      return;
+    }
+
+    const today = new Date().toDateString();
+    const yesterday = new Date(Date.now() - 86400000).toDateString();
+
+    listEl.innerHTML = data.map(w => {
+      const d = new Date(w.created_at);
+      const when = d.toDateString() === today ? 'Today' : d.toDateString() === yesterday ? 'Yesterday' : d.toLocaleDateString();
+      return `<div class="activity-row"><span>${w.customers?.name ?? 'Unknown'} — ${w.vehicles?.vehicle ?? ''} — ${w.status}</span><span class="when">${when}</span></div>`;
+    }).join('');
+  }
 </script>
 
 </body>
