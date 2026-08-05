@@ -6,273 +6,184 @@
 <title>Workshop — Coastline Auto Tech</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
 <style>
   :root{
-    --navy-deep:#0B2436;
-    --navy-mid:#123249;
-    --steel:#54727F;
-    --paper:#EDE7D8;
-    --paper-line:#D8CFB8;
-    --card:#F6F2E7;
-    --ink:#182228;
-    --ink-soft:#4A5860;
-    --orange:#E4590A;
-    --orange-dark:#B8430A;
-    --ok:#2F6B4F;
-    --ok-bg:rgba(47,107,79,.1);
-    --warn:#AE3226;
-    --radius:2px;
+    --navy:#141414; --navy-light:#8A8378; --sidebar-hover:#262626;
+    --bg:#1A1A1A; --card:#242424; --border:#3A362E;
+    --ink:#EDEAE2; --ink-soft:#A39C8E;
+    --blue:#C9A227; --blue-dark:#A6841E;
+    --green:#4CAF7D; --amber:#D9A441; --coral:#D97D5D; --red:#E2726B;
+    --radius:10px;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
-  body{
-    background:var(--paper);
-    color:var(--ink);
-    font-family:'Inter',sans-serif;
-    -webkit-font-smoothing:antialiased;
-    min-height:100vh;
-  }
+  body{background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;min-height:100vh;}
 
-  /* ---------- Header ---------- */
-  header.top{
-    background:linear-gradient(180deg,var(--navy-deep) 0%, var(--navy-mid) 100%);
-    padding:18px 24px;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    flex-wrap:wrap;
-    gap:10px;
-    position:relative;
-  }
-  header.top::after{
-    content:"";
-    position:absolute;left:0;right:0;bottom:0;height:2px;
-    background:linear-gradient(90deg, transparent, rgba(228,89,10,.85), transparent);
-  }
-  .wordmark{
-    font-family:'Oswald',sans-serif;
-    font-weight:600;
-    letter-spacing:.12em;
-    text-transform:uppercase;
-    color:#F4EFE2;
-    font-size:14px;
-  }
-  .wordmark span{color:var(--orange);}
-  .top-right{display:flex;align-items:center;gap:14px;}
-  .top-right span{font-family:'IBM Plex Mono',monospace;font-size:12px;color:#9FB3BE;}
-  .btn-ghost{
-    font-family:'Oswald',sans-serif;
-    font-size:12px;letter-spacing:.08em;text-transform:uppercase;
-    color:#F4EFE2;background:transparent;border:1px solid var(--steel);
-    padding:7px 14px;border-radius:var(--radius);cursor:pointer;
-  }
-  .btn-ghost:hover{border-color:var(--orange);color:var(--orange);}
-
-  /* ---------- Login ---------- */
-  #loginScreen{
-    max-width:380px;margin:80px auto;padding:0 20px;
-  }
-  .login-card{
-    background:var(--card);border:1px solid var(--paper-line);
-    border-radius:var(--radius);padding:28px 26px;
-    box-shadow:0 18px 40px -18px rgba(11,36,54,.35);
-  }
-  .login-card h1{
-    font-family:'Oswald',sans-serif;font-size:20px;font-weight:600;
-    margin:0 0 4px;color:var(--navy-deep);
-  }
-  .login-card p{font-size:13px;color:var(--ink-soft);margin:0 0 20px;}
+  #loginScreen{max-width:380px;margin:100px auto;padding:0 20px;}
+  .login-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:30px 28px;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  .login-card h1{font-size:20px;font-weight:600;margin:0 0 4px;color:var(--ink);}
+  .login-card p{font-size:13px;color:var(--ink-soft);margin:0 0 22px;}
   label{display:block;font-size:12.5px;font-weight:500;color:var(--ink-soft);margin-bottom:14px;}
-  input,select,textarea{
-    display:block;width:100%;margin-top:6px;padding:10px 11px;
-    background:#FFFDF8;border:1px solid var(--paper-line);border-radius:var(--radius);
-    font-family:'Inter',sans-serif;font-size:14.5px;color:var(--ink);
-  }
-  input:focus,select:focus,textarea:focus{outline:2px solid var(--orange);outline-offset:1px;border-color:var(--orange);}
-  .stamp{
-    font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
-    font-size:14px;color:#fff;background:var(--orange);border:2px solid var(--orange);
-    border-radius:var(--radius);padding:12px 20px;width:100%;cursor:pointer;
-  }
-  .stamp:hover{background:var(--orange-dark);border-color:var(--orange-dark);}
-  .stamp:disabled{opacity:.6;cursor:not-allowed;}
-  .msg{margin-top:14px;padding:11px 13px;border-radius:var(--radius);font-size:13px;display:none;}
+  input,select{display:block;width:100%;margin-top:6px;padding:9px 11px;background:#1E1E1E;border:1px solid var(--border);border-radius:8px;font-family:'Inter',sans-serif;font-size:14px;color:var(--ink);}
+  input:focus,select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(201,162,39,.2);}
+  .btn-primary{font-weight:600;font-size:13.5px;color:#1A1A1A;background:var(--blue);border:none;border-radius:8px;padding:10px 16px;cursor:pointer;}
+  .btn-primary:hover{background:var(--blue-dark);}
+  .btn-ghost{font-weight:500;font-size:12.5px;color:var(--ink-soft);background:#1E1E1E;border:1px solid var(--border);border-radius:8px;padding:9px 14px;cursor:pointer;text-decoration:none;display:inline-block;}
+  .btn-ghost:hover{border-color:var(--blue);color:var(--blue);}
+  .msg{margin-top:12px;padding:10px 13px;border-radius:8px;font-size:13px;display:none;}
   .msg.show{display:block;}
-  .msg.err{background:rgba(174,50,38,.1);color:var(--warn);border:1px solid rgba(174,50,38,.35);}
+  .msg.err{background:rgba(226,114,107,.15);color:var(--red);}
+  .msg.ok{background:rgba(76,175,125,.15);color:var(--green);}
 
-  /* ---------- Dashboard ---------- */
-  #dashboard{display:none;max-width:920px;margin:0 auto;padding:32px 20px 60px;}
-  .section-title{
-    font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:.1em;text-transform:uppercase;
-    color:var(--navy-deep);margin:0 0 14px;padding-bottom:8px;border-bottom:1px dashed var(--paper-line);
-  }
-  .job-list{display:flex;flex-direction:column;gap:12px;margin-bottom:38px;}
-  .job-card{
-    background:var(--card);border:1px solid var(--paper-line);border-radius:var(--radius);
-    padding:16px 18px;display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;
-  }
-  .job-info b{font-family:'Oswald',sans-serif;font-size:15px;color:var(--navy-deep);}
-  .job-info .meta{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-soft);margin-top:3px;}
-  .job-info .desc{font-size:13px;color:var(--ink-soft);margin-top:5px;max-width:50ch;}
-  .job-actions{display:flex;gap:8px;flex-wrap:wrap;}
-  .pill{
-    font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.05em;
-    padding:3px 9px;border-radius:20px;border:1px solid var(--steel);color:var(--steel);
-    text-transform:uppercase;
-  }
-  .pill.pending{border-color:var(--orange);color:var(--orange-dark);}
-  .pill.confirmed{border-color:var(--ok);color:var(--ok);}
-  .pill.in_progress{border-color:var(--navy-mid);color:var(--navy-mid);background:rgba(18,50,73,.06);}
-  button.action{
-    font-family:'Oswald',sans-serif;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;
-    padding:8px 12px;border-radius:var(--radius);cursor:pointer;border:1px solid var(--steel);
-    background:#fff;color:var(--ink-soft);
-  }
-  button.action.primary{background:var(--orange);border-color:var(--orange);color:#fff;}
-  button.action.primary:hover{background:var(--orange-dark);}
-  button.action:hover{border-color:var(--navy-mid);color:var(--navy-mid);}
-  .empty{font-size:13.5px;color:var(--ink-soft);padding:16px 0;}
+  #appShell{display:none;min-height:100vh;}
+  .sidebar{width:72px;background:var(--navy);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:20px 0;gap:24px;flex-shrink:0;position:fixed;top:0;bottom:0;left:0;}
+  .sidebar .logo{font-size:24px;color:var(--blue);margin-bottom:8px;}
+  .sidebar a, .sidebar button{width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:10px;color:var(--navy-light);text-decoration:none;background:none;border:none;cursor:pointer;font-size:20px;}
+  .sidebar a:hover, .sidebar button:hover{background:var(--sidebar-hover);color:var(--ink);}
+  .sidebar a.active{background:var(--blue);color:#1A1A1A;}
 
-  label{display:block;font-size:12.5px;font-weight:500;color:var(--ink-soft);margin-bottom:14px;}
-  input,select{display:block;width:100%;margin-top:6px;padding:9px 10px;background:#FFFDF8;border:1px solid var(--paper-line);border-radius:var(--radius);font-family:'Inter',sans-serif;font-size:14px;color:var(--ink);}
-  input:focus,select:focus{outline:2px solid var(--orange);outline-offset:1px;border-color:var(--orange);}
-  .msg{margin-top:12px;padding:10px 12px;border-radius:var(--radius);font-size:13px;display:none;}
-  .msg.show{display:block;}
-  .msg.err{background:rgba(174,50,38,.1);color:var(--warn);border:1px solid rgba(174,50,38,.35);}
-  .msg.ok{background:rgba(47,107,79,.1);color:var(--ok);border:1px solid rgba(47,107,79,.35);}
+  main{margin-left:72px;padding:32px 40px 60px;max-width:900px;}
+  .page-title{font-size:20px;font-weight:600;margin:0 0 20px;color:var(--ink);}
+  .section-title{font-size:15px;font-weight:600;color:var(--ink);margin:32px 0 14px;}
 
-  .new-wo-panel{background:var(--card);border:1px solid var(--paper-line);border-radius:var(--radius);padding:16px 18px;margin-bottom:16px;}
-  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-  .wo-mode{font-family:'Oswald',sans-serif;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;padding:8px 12px;border:1px solid var(--paper-line);background:#fff;color:var(--ink-soft);cursor:pointer;border-radius:var(--radius);}
-  .wo-mode.active{background:var(--navy-mid);border-color:var(--navy-mid);color:#fff;}
-  .del-btn{color:var(--warn);background:none;border:none;cursor:pointer;font-size:11.5px;text-decoration:underline;}
-  @media (max-width:560px){ .row2{grid-template-columns:1fr;} }
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:16px;}
+  .card:last-child{margin-bottom:0;}
+
+  .job-card{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;}
+  .job-info b{font-size:14.5px;color:var(--ink);}
+  .job-info .meta{font-size:12px;color:var(--ink-soft);margin-top:3px;}
+  .job-info .desc{font-size:12.5px;color:var(--ink-soft);margin-top:5px;max-width:50ch;}
+  .job-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+
+  .pill{font-size:11px;padding:3px 10px;border-radius:20px;text-transform:capitalize;font-weight:500;}
+  .pill.pending{background:rgba(217,164,65,.15);color:var(--amber);}
+  .pill.confirmed{background:rgba(76,175,125,.15);color:var(--green);}
+  .pill.in_progress{background:rgba(201,162,39,.15);color:var(--blue);}
+  .pill.completed{background:rgba(255,255,255,.06);color:var(--ink-soft);}
+  .pill.waiting_for_parts{background:rgba(217,125,93,.15);color:var(--coral);}
+  .pill.on_hold{background:rgba(255,255,255,.06);color:var(--ink-soft);}
+
+  .action{font-size:12px;font-weight:500;padding:7px 12px;border-radius:7px;cursor:pointer;border:1px solid var(--border);background:#1E1E1E;color:var(--ink-soft);text-decoration:none;display:inline-block;}
+  .action.primary{background:var(--blue);border-color:var(--blue);color:#1A1A1A;}
+  .action.primary:hover{background:var(--blue-dark);}
+  .action:hover{border-color:var(--ink-soft);color:var(--ink);}
+  .del-btn{color:var(--red);background:none;border:none;cursor:pointer;font-size:11.5px;text-decoration:underline;}
+
+  .new-wo-panel .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .wo-mode{font-size:12px;font-weight:500;padding:8px 12px;border:1px solid var(--border);background:#1E1E1E;color:var(--ink-soft);cursor:pointer;border-radius:8px;}
+  .wo-mode.active{background:var(--blue);border-color:var(--blue);color:#1A1A1A;}
+  .empty{font-size:13.5px;color:var(--ink-soft);padding:12px 0;}
+
+  @media (max-width:700px){ main{padding:24px 18px;} .new-wo-panel .row2{grid-template-columns:1fr;} }
 </style>
 </head>
 <body>
 
-<header class="top">
-  <div class="wordmark">Coastline <span>Auto</span> Tech — Workshop</div>
-  <div class="top-right" id="topRight" style="display:none">
-    <span id="userEmail"></span>
-    <a class="btn-ghost" href="control.html" style="text-decoration:none;display:inline-block">Home</a>
-    <a class="btn-ghost" href="invoices.html" style="text-decoration:none;display:inline-block">Invoices</a>
-    <a class="btn-ghost" href="settings.html" style="text-decoration:none;display:inline-block">Settings</a>
-    <button class="btn-ghost" id="logoutBtn">Log out</button>
-  </div>
-</header>
-
-<!-- ===== Login screen ===== -->
 <section id="loginScreen">
   <div class="login-card">
     <h1>Staff login</h1>
-    <p>For workshop use only.</p>
+    <p>Coastline Auto Tech — for workshop use only.</p>
     <form id="loginForm">
-      <label>Email
-        <input required type="email" id="email" autocomplete="username" />
-      </label>
-      <label>Password
-        <input required type="password" id="password" autocomplete="current-password" />
-      </label>
-      <button type="submit" class="stamp" id="loginBtn">Log in</button>
+      <label>Email<input required type="email" id="email" autocomplete="username" /></label>
+      <label>Password<input required type="password" id="password" autocomplete="current-password" /></label>
+      <button type="submit" class="btn-primary" style="width:100%" id="loginBtn">Log in</button>
       <div class="msg" id="loginMsg"></div>
     </form>
   </div>
 </section>
 
-<!-- ===== Dashboard ===== -->
-<main id="dashboard">
-  <h2 class="section-title">Booking queue</h2>
-  <div class="job-list" id="apptList"><p class="empty">Loading…</p></div>
+<div id="appShell">
+  <nav class="sidebar">
+    <i class="ti ti-anchor logo"></i>
+    <a href="control.html" title="Home"><i class="ti ti-layout-dashboard"></i></a>
+    <a href="internal.html" class="active" title="Bookings and work orders"><i class="ti ti-tool"></i></a>
+    <a href="invoices.html" title="Invoices"><i class="ti ti-receipt-2"></i></a>
+    <a href="settings.html" title="Settings"><i class="ti ti-settings"></i></a>
+    <button id="logoutBtn" title="Log out"><i class="ti ti-logout"></i></button>
+  </nav>
 
-  <h2 class="section-title">Work orders <span style="font-weight:400;text-transform:none;letter-spacing:0">(all)</span></h2>
+  <main>
+    <p class="page-title">Booking queue</p>
+    <div id="apptList"><p class="empty">Loading…</p></div>
 
-  <div class="new-wo-panel">
-    <button type="button" class="action primary" id="toggleNewWoBtn">+ New work order</button>
-    <div id="newWoForm" style="display:none;margin-top:14px">
-      <div style="display:flex;gap:8px;margin-bottom:14px">
-        <button type="button" class="wo-mode active" data-mode="existing">Existing customer</button>
-        <button type="button" class="wo-mode" data-mode="new">New customer</button>
-      </div>
+    <p class="section-title">Work orders <span style="font-weight:400;color:var(--ink-soft)">(all)</span></p>
 
-      <div id="existingCustBlock">
-        <label>Customer<select id="existCustomerSel"><option value="">Choose a customer…</option></select></label>
-        <label>Vehicle<select id="existVehicleSel"><option value="">Choose a vehicle…</option></select></label>
-      </div>
-
-      <div id="newCustBlock" style="display:none">
-        <div class="row2">
-          <label>Name<input id="newCustName" /></label>
-          <label>Phone<input id="newCustPhone" /></label>
+    <div class="card new-wo-panel">
+      <button type="button" class="action primary" id="toggleNewWoBtn">+ New work order</button>
+      <div id="newWoForm" style="display:none;margin-top:14px">
+        <div style="display:flex;gap:8px;margin-bottom:14px">
+          <button type="button" class="wo-mode active" data-mode="existing">Existing customer</button>
+          <button type="button" class="wo-mode" data-mode="new">New customer</button>
         </div>
-        <label>Address (optional)<input id="newCustAddr" /></label>
-        <div class="row2">
-          <label>Rego<input id="newVehRego" style="text-transform:uppercase" /></label>
-          <label>Odometer, km (optional)<input id="newVehKms" type="number" /></label>
-        </div>
-        <label>Make, model &amp; year<input id="newVehVehicle" placeholder="e.g. 2018 Toyota Hilux Ute" /></label>
-      </div>
 
-      <button type="button" class="action primary" id="createWoBtn">Create work order</button>
-      <div class="msg" id="newWoMsg"></div>
+        <div id="existingCustBlock">
+          <label>Customer<select id="existCustomerSel"><option value="">Choose a customer…</option></select></label>
+          <label>Vehicle<select id="existVehicleSel"><option value="">Choose a vehicle…</option></select></label>
+        </div>
+
+        <div id="newCustBlock" style="display:none">
+          <div class="row2">
+            <label>Name<input id="newCustName" /></label>
+            <label>Phone<input id="newCustPhone" /></label>
+          </div>
+          <label>Address (optional)<input id="newCustAddr" /></label>
+          <div class="row2">
+            <label>Rego<input id="newVehRego" style="text-transform:uppercase" /></label>
+            <label>Odometer, km (optional)<input id="newVehKms" type="number" /></label>
+          </div>
+          <label>Make, model &amp; year<input id="newVehVehicle" placeholder="e.g. 2018 Toyota Hilux Ute" /></label>
+        </div>
+
+        <button type="button" class="btn-primary" id="createWoBtn">Create work order</button>
+        <div class="msg" id="newWoMsg"></div>
+      </div>
     </div>
-  </div>
-  <div class="job-list" id="woList"><p class="empty">Loading…</p></div>
-</main>
+
+    <div id="woList"><p class="empty">Loading…</p></div>
+  </main>
+</div>
 
 <script type="module">
   import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
   const SUPABASE_URL = "https://kjytblqvkwmyrudnksdp.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtqeXRibHF2a3dteXJ1ZG5rc2RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0OTEzMzcsImV4cCI6MjEwMTA2NzMzN30.4lONpoNVUzGQnf8ieBL8m6fa_ZmIaCIpNaVHEKOj3BI";
-
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   const loginScreen = document.getElementById('loginScreen');
-  const dashboard = document.getElementById('dashboard');
-  const topRight = document.getElementById('topRight');
-  const userEmail = document.getElementById('userEmail');
+  const appShell = document.getElementById('appShell');
   const loginForm = document.getElementById('loginForm');
   const loginBtn = document.getElementById('loginBtn');
   const loginMsg = document.getElementById('loginMsg');
 
   loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    loginBtn.disabled = true;
-    loginBtn.textContent = 'Logging in…';
+    loginBtn.disabled = true; loginBtn.textContent = 'Logging in…';
     loginMsg.className = 'msg';
-
     const { error } = await supabase.auth.signInWithPassword({
       email: document.getElementById('email').value,
       password: document.getElementById('password').value
     });
-
     if (error) {
       loginMsg.textContent = 'Wrong email or password.';
-      loginMsg.classList.add('show', 'err');
-      loginBtn.disabled = false;
-      loginBtn.textContent = 'Log in';
+      loginMsg.classList.add('show','err');
+      loginBtn.disabled = false; loginBtn.textContent = 'Log in';
     }
   });
 
-  document.getElementById('logoutBtn').addEventListener('click', async () => {
-    await supabase.auth.signOut();
-  });
+  document.getElementById('logoutBtn').addEventListener('click', async () => { await supabase.auth.signOut(); });
 
   supabase.auth.onAuthStateChange((_event, session) => {
     if (session) {
       loginScreen.style.display = 'none';
-      dashboard.style.display = 'block';
-      topRight.style.display = 'flex';
-      userEmail.textContent = session.user.email;
+      appShell.style.display = 'block';
       loadAppointments();
       loadWorkOrders();
       loadCustomersForNewWo();
     } else {
       loginScreen.style.display = 'block';
-      dashboard.style.display = 'none';
-      topRight.style.display = 'none';
+      appShell.style.display = 'none';
     }
   });
 
@@ -294,7 +205,7 @@
     }
 
     listEl.innerHTML = data.map(a => `
-      <div class="job-card" data-id="${a.id}">
+      <div class="card job-card" data-id="${a.id}">
         <div class="job-info">
           <b>${a.customers?.name ?? 'Unknown'}</b> — ${a.vehicles?.vehicle ?? ''} (${a.vehicles?.rego ?? ''})
           <div class="meta">${a.appointment_date} · ${a.appointment_time} · ${a.service_type} · <span class="pill ${a.status}">${a.status}</span></div>
@@ -352,19 +263,19 @@
       return;
     }
     if (!data.length) {
-      listEl.innerHTML = '<p class="empty">No active work orders.</p>';
+      listEl.innerHTML = '<p class="empty">No work orders yet.</p>';
       return;
     }
 
     listEl.innerHTML = data.map(w => `
-      <div class="job-card">
+      <div class="card job-card">
         <div class="job-info">
           <b>${w.customers?.name ?? 'Unknown'}</b> — ${w.vehicles?.vehicle ?? ''} (${w.vehicles?.rego ?? ''})
           <div class="meta">Work order #${w.id} · <span class="pill ${w.status}">${w.status}</span></div>
         </div>
         <div class="job-actions">
-          <a class="action primary" href="workorder.html?id=${w.id}" style="text-decoration:none;display:inline-block">Open</a>
-          ${w.status !== 'completed' ? `<button class="action" data-complete="${w.id}">Mark complete</button>` : `<a class="action" href="invoice.html?id=${w.id}" style="text-decoration:none;display:inline-block">Invoice</a>`}
+          <a class="action primary" href="workorder.html?id=${w.id}">Open</a>
+          ${w.status !== 'completed' ? `<button class="action" data-complete="${w.id}">Mark complete</button>` : `<a class="action" href="invoice.html?id=${w.id}">Invoice</a>`}
           <button class="del-btn" data-delwo="${w.id}" style="margin-left:6px">Delete</button>
         </div>
       </div>
@@ -385,7 +296,6 @@
     });
   }
 
-  // ---- New work order panel ----
   let allCustomers = [];
 
   document.getElementById('toggleNewWoBtn').addEventListener('click', () => {
