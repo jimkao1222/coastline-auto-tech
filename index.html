@@ -333,9 +333,13 @@
             <input required name="name" type="text" autocomplete="name" />
           </label>
           <label>Phone
-            <input required name="phone" type="tel" autocomplete="tel" />
+            <input name="phone" type="tel" autocomplete="tel" />
           </label>
         </div>
+        <label>Email
+          <input name="email" type="email" autocomplete="email" />
+        </label>
+        <p style="font-size:12px;color:var(--ink-soft);margin:-8px 0 4px">Please provide a phone number or an email so we can confirm your booking.</p>
       </fieldset>
 
       <fieldset>
@@ -454,13 +458,21 @@
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     msg.className = 'msg';
+
+    const fd = new FormData(form);
+
+    if (!fd.get('phone') && !fd.get('email')) {
+      msg.textContent = 'Please provide a phone number or an email address so we can reach you.';
+      msg.classList.add('show','err');
+      return;
+    }
+
     submitBtn.disabled = true;
     submitBtn.textContent = 'Submitting…';
 
-    const fd = new FormData(form);
     const payload = {
       p_name: fd.get('name'),
-      p_phone: fd.get('phone'),
+      p_phone: fd.get('phone') || null,
       p_email: fd.get('email') || null,
       p_address: null,
       p_rego: fd.get('rego').toUpperCase(),
