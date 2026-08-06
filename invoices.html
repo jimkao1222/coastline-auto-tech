@@ -85,12 +85,14 @@
     <a href="control.html" title="Home"><i class="ti ti-layout-dashboard"></i></a>
     <a href="internal.html" title="Bookings and work orders"><i class="ti ti-tool"></i></a>
     <a href="invoices.html" class="active" title="Invoices"><i class="ti ti-receipt-2"></i></a>
+    <a href="reports.html" title="Reports"><i class="ti ti-chart-bar"></i></a>
     <a href="settings.html" title="Settings"><i class="ti ti-settings"></i></a>
     <button id="logoutBtn" title="Log out"><i class="ti ti-logout"></i></button>
   </nav>
 
   <main>
     <p class="page-title">Invoices</p>
+    <input id="invSearch" placeholder="Search by customer or invoice number…" style="margin-bottom:14px" />
     <div class="card">
       <table>
         <thead><tr><th>Invoice #</th><th>Date</th><th>Customer</th><th class="num">Total</th><th>Status</th><th></th></tr></thead>
@@ -140,6 +142,13 @@
     }
   });
 
+  document.getElementById('invSearch').addEventListener('input', () => {
+    const q = document.getElementById('invSearch').value.trim().toLowerCase();
+    document.querySelectorAll('#invBody tr[data-row]').forEach(tr => {
+      tr.style.display = tr.dataset.row.toLowerCase().includes(q) ? '' : 'none';
+    });
+  });
+
   async function loadInvoices() {
     const body = document.getElementById('invBody');
     const { data, error } = await supabase
@@ -157,7 +166,7 @@
     }
 
     body.innerHTML = data.map(inv => `
-      <tr>
+      <tr data-row="${inv.customers?.name ?? ''} ${inv.invoice_number}">
         <td class="mono">${inv.invoice_number}</td>
         <td>${inv.invoice_date}</td>
         <td>${inv.customers?.name ?? 'Unknown'}</td>
