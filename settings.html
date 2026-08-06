@@ -101,6 +101,7 @@
     <a href="control.html" title="Home"><i class="ti ti-layout-dashboard"></i></a>
     <a href="internal.html" title="Bookings and work orders"><i class="ti ti-tool"></i></a>
     <a href="invoices.html" title="Invoices"><i class="ti ti-receipt-2"></i></a>
+    <a href="reports.html" title="Reports"><i class="ti ti-chart-bar"></i></a>
     <a href="settings.html" class="active" title="Settings"><i class="ti ti-settings"></i></a>
     <button id="logoutBtn" title="Log out"><i class="ti ti-logout"></i></button>
   </nav>
@@ -110,6 +111,7 @@
 
     <div class="tabs">
       <button data-tab="customers" class="active">Customers</button>
+      <button data-tab="vehicles">Vehicles</button>
       <button data-tab="parts">Parts</button>
       <button data-tab="services">Services</button>
       <button data-tab="rates">Hourly rates</button>
@@ -121,6 +123,7 @@
           <h3>Customers</h3>
           <label class="archive-toggle"><input type="checkbox" id="showArchived" /> Show archived customers</label>
         </div>
+        <div style="padding:12px 20px 0"><input id="custSearch" placeholder="Search by name or phone…" /></div>
         <table>
           <thead><tr><th>Name</th><th>Phone</th><th>Address</th><th>Email</th><th></th></tr></thead>
           <tbody id="customersBody"></tbody>
@@ -135,6 +138,29 @@
           <label>Address<input id="c_address" /></label>
           <button class="btn-primary" id="c_save">Add customer</button>
           <div class="msg" id="c_msg"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-vehicles">
+      <div class="card">
+        <div class="card-head"><h3>Vehicles</h3></div>
+        <div style="padding:12px 20px 0"><input id="vehSearch" placeholder="Search by rego, vehicle, or owner…" /></div>
+        <table>
+          <thead><tr><th>Owner</th><th>Rego</th><th>Vehicle</th><th class="num">Kms</th><th>VIN</th><th></th></tr></thead>
+          <tbody id="vehiclesBody"></tbody>
+        </table>
+        <div class="add-form">
+          <h3 style="font-size:13px;margin:0 0 12px">Add new vehicle</h3>
+          <label>Owner<select id="v_customer"></select></label>
+          <div class="row3">
+            <label>Rego<input id="v_rego" style="text-transform:uppercase" /></label>
+            <label>Kms<input id="v_kms" type="number" /></label>
+            <label>VIN (optional)<input id="v_vin" /></label>
+          </div>
+          <label>Make, model &amp; year<input id="v_vehicle" placeholder="e.g. 2018 Toyota Hilux Ute" /></label>
+          <button class="btn-primary" id="v_save">Add vehicle</button>
+          <div class="msg" id="v_msg"></div>
         </div>
       </div>
     </div>
@@ -241,7 +267,7 @@
     if (session) {
       loginScreen.style.display = 'none';
       appShell.style.display = 'block';
-      loadParts(); loadServices(); loadRates(); loadCustomers();
+      loadParts(); loadServices(); loadRates(); loadCustomers(); loadVehicles();
     } else {
       loginScreen.style.display = 'block';
       appShell.style.display = 'none';
@@ -310,7 +336,7 @@
 
     const body = document.getElementById('customersBody');
     body.innerHTML = (data || []).map(c => `
-      <tr style="${c.is_active === false ? 'opacity:.55' : ''}">
+      <tr data-row="${c.name} ${c.phone ?? ''}" style="${c.is_active === false ? 'opacity:.55' : ''}">
         <td class="editable" contenteditable="${c.is_active !== false}" data-table="customers" data-id="${c.id}" data-field="name" data-type="text">${c.name}</td>
         <td class="editable" contenteditable="${c.is_active !== false}" data-table="customers" data-id="${c.id}" data-field="phone" data-type="text">${c.phone ?? ''}</td>
         <td class="editable" contenteditable="${c.is_active !== false}" data-table="customers" data-id="${c.id}" data-field="address" data-type="text">${c.address ?? ''}</td>
@@ -331,6 +357,15 @@
   }
 
   document.getElementById('showArchived').addEventListener('change', loadCustomers);
+  document.getElementById('custSearch').addEventListener('input', filterCustomerRows);
+
+  function filterCustomerRows() {
+    const q = document.getElementById('custSearch').value.trim().toLowerCase();
+    document.querySelectorAll('#customersBody tr[data-row]').forEach(tr => {
+      const hay = tr.dataset.row.toLowerCase();
+      tr.style.display = hay.includes(q) ? '' : 'none';
+    });
+  }
 
   document.getElementById('c_save').addEventListener('click', async () => {
     const msg = document.getElementById('c_msg'); msg.className = 'msg';
@@ -347,6 +382,64 @@
     showMsg(msg, 'Customer added.', true);
     ['c_name','c_phone','c_email','c_address'].forEach(id => document.getElementById(id).value = '');
     loadCustomers();
+    loadVehicleOwnerDropdown();
+  });
+
+  // ================= VEHICLES =================
+  async function loadVehicles() {
+    const { data } = await supabase.from('vehicles').select('*, customers(name)').order('vehicle');
+    const body = document.getElementById('vehiclesBody');
+    body.innerHTML = (data || []).map(v => `
+      <tr data-row="${(v.customers?.name ?? '')} ${v.rego} ${v.vehicle} ${v.vin ?? ''}">
+        <td>${v.customers?.name ?? 'Unknown'}</td>
+        <td class="editable" contenteditable="true" data-table="vehicles" data-id="${v.id}" data-field="rego" data-type="text">${v.rego}</td>
+        <td class="editable" contenteditable="true" data-table="vehicles" data-id="${v.id}" data-field="vehicle" data-type="text">${v.vehicle}</td>
+        <td class="num editable" contenteditable="true" data-table="vehicles" data-id="${v.id}" data-field="kms" data-type="number">${v.kms ?? ''}</td>
+        <td class="editable" contenteditable="true" data-table="vehicles" data-id="${v.id}" data-field="vin" data-type="text">${v.vin ?? ''}</td>
+        <td><button class="del-btn" data-del="${v.id}">Delete</button></td>
+      </tr>`).join('') || '<tr><td colspan="6" style="color:var(--ink-soft)">No vehicles yet.</td></tr>';
+
+    bindEditableCells(body);
+    body.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', async () => {
+      if (!confirm('Delete this vehicle? This cannot be undone.')) return;
+      await supabase.from('vehicles').delete().eq('id', b.dataset.del);
+      loadVehicles();
+    }));
+
+    await loadVehicleOwnerDropdown();
+  }
+
+  async function loadVehicleOwnerDropdown() {
+    const { data } = await supabase.from('customers').select('id, name').eq('is_active', true).order('name');
+    const sel = document.getElementById('v_customer');
+    sel.innerHTML = '<option value="">Choose owner…</option>' + (data || []).map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  }
+
+  document.getElementById('vehSearch').addEventListener('input', () => {
+    const q = document.getElementById('vehSearch').value.trim().toLowerCase();
+    document.querySelectorAll('#vehiclesBody tr[data-row]').forEach(tr => {
+      tr.style.display = tr.dataset.row.toLowerCase().includes(q) ? '' : 'none';
+    });
+  });
+
+  document.getElementById('v_save').addEventListener('click', async () => {
+    const msg = document.getElementById('v_msg'); msg.className = 'msg';
+    const customerId = document.getElementById('v_customer').value;
+    const rego = document.getElementById('v_rego').value;
+    const vehicleText = document.getElementById('v_vehicle').value;
+    if (!customerId || !rego || !vehicleText) { showMsg(msg, 'Owner, rego, and vehicle are required.', false); return; }
+
+    const kmsVal = document.getElementById('v_kms').value;
+    const { error } = await supabase.from('vehicles').insert({
+      customer_id: customerId, rego: rego.toUpperCase(), vehicle: vehicleText,
+      vin: document.getElementById('v_vin').value || null,
+      kms: kmsVal ? parseInt(kmsVal, 10) : null
+    });
+    if (error) { showMsg(msg, error.message, false); return; }
+    showMsg(msg, 'Vehicle added.', true);
+    ['v_rego','v_kms','v_vin','v_vehicle'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('v_customer').value = '';
+    loadVehicles();
   });
 
   // ================= PARTS =================
