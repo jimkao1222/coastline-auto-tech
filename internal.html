@@ -100,6 +100,7 @@
     <a href="control.html" title="Home"><i class="ti ti-layout-dashboard"></i></a>
     <a href="internal.html" class="active" title="Bookings and work orders"><i class="ti ti-tool"></i></a>
     <a href="invoices.html" title="Invoices"><i class="ti ti-receipt-2"></i></a>
+    <a href="reports.html" title="Reports"><i class="ti ti-chart-bar"></i></a>
     <a href="settings.html" title="Settings"><i class="ti ti-settings"></i></a>
     <button id="logoutBtn" title="Log out"><i class="ti ti-logout"></i></button>
   </nav>
@@ -109,6 +110,7 @@
     <div id="apptList"><p class="empty">Loading…</p></div>
 
     <p class="section-title">Work orders <span style="font-weight:400;color:var(--ink-soft)">(all)</span></p>
+    <input id="woSearch" placeholder="Search by customer, rego, or vehicle…" style="margin-bottom:14px" />
 
     <div class="card new-wo-panel">
       <button type="button" class="action primary" id="toggleNewWoBtn">+ New work order</button>
@@ -268,7 +270,7 @@
     }
 
     listEl.innerHTML = data.map(w => `
-      <div class="card job-card">
+      <div class="card job-card" data-row="${w.customers?.name ?? ''} ${w.vehicles?.rego ?? ''} ${w.vehicles?.vehicle ?? ''}">
         <div class="job-info">
           <b>${w.customers?.name ?? 'Unknown'}</b> — ${w.vehicles?.vehicle ?? ''} (${w.vehicles?.rego ?? ''})
           <div class="meta">Work order #${w.id} · <span class="pill ${w.status}">${w.status}</span></div>
@@ -295,6 +297,13 @@
       });
     });
   }
+
+  document.getElementById('woSearch').addEventListener('input', () => {
+    const q = document.getElementById('woSearch').value.trim().toLowerCase();
+    document.querySelectorAll('#woList [data-row]').forEach(el => {
+      el.style.display = el.dataset.row.toLowerCase().includes(q) ? '' : 'none';
+    });
+  });
 
   let allCustomers = [];
 
