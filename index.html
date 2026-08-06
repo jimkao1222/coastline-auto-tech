@@ -4,6 +4,12 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Book a Service — Coastline Auto Tech</title>
+<meta name="description" content="Book a car service, diagnostic, or AC regas at Coastline Auto Tech — a one-person auto workshop in Robina, Gold Coast QLD. Honest work, straightforward pricing." />
+<meta property="og:title" content="Coastline Auto Tech — Book a Service" />
+<meta property="og:description" content="Gold Coast car servicing, diagnostics, and AC regas. One mechanic, straight answers, no surprises." />
+<meta property="og:type" content="website" />
+<link rel="icon" type="image/png" href="favicon.png" />
+<link rel="apple-touch-icon" href="favicon.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -273,7 +279,7 @@
     display:none;
   }
   .msg.show{display:block;}
-  .msg.ok{background:rgba(47,107,79,.1);color:var(--ok);border:1px solid rgba(47,107,79,.35);}
+  .msg.ok{background:rgba(47,107,79,.12);color:var(--ok);border:2px solid var(--ok);font-size:15px;font-weight:600;padding:16px 18px;text-align:center;}
   .msg.err{background:rgba(174,50,38,.1);color:var(--warn);border:1px solid rgba(174,50,38,.35);}
 
   footer{
@@ -312,6 +318,7 @@
   <h1>Get your car booked in.</h1>
   <p class="sub" style="color:var(--orange-dark);font-weight:600;margin-bottom:6px">Jin K · 0403 859 247 · Mon–Fri 8:00am–4:00pm</p>
   <p class="sub">One mechanic, straight answers, no surprises. Fill in the docket below and we'll call to confirm your slot.</p>
+  <p class="sub" style="font-size:13.5px;opacity:.85">Coastline Auto Tech is a one-person workshop based in Robina, Gold Coast — no waiting rooms, no upsells, just straightforward mechanical work, done properly and explained clearly.</p>
 </section>
 
 <main>
@@ -373,6 +380,10 @@
         <label>Tell us what's going on <span style="opacity:.6">(optional)</span>
           <textarea name="description" rows="3" placeholder="Any noises, warning lights, or symptoms?"></textarea>
         </label>
+        <label>Photo <span style="opacity:.6">(optional — a dashboard light, leak, or damage helps us prepare)</span>
+          <input type="file" id="photoInput" accept="image/*" />
+        </label>
+        <p class="msg" id="photoMsg" style="margin-top:6px"></p>
       </fieldset>
 
       <fieldset>
@@ -380,6 +391,7 @@
         <div class="row">
           <label>Date
             <input required name="appointment_date" type="date" id="apptDate" />
+            <p class="msg" id="dateMsg" style="margin-top:6px"></p>
           </label>
           <label>Time
             <select required name="appointment_time" id="apptTime">
@@ -394,10 +406,10 @@
         </div>
       </fieldset>
 
+      <div class="msg" id="formMessage" role="status" aria-live="polite"></div>
       <button type="submit" class="stamp" id="submitBtn">Lock in booking</button>
       <p class="note">We'll confirm by phone before your slot is locked in.</p>
       <p class="note" style="opacity:.75">Your details are used only to manage your booking and service history, and are never sold or shared with third parties.</p>
-      <div class="msg" id="formMessage" role="status" aria-live="polite"></div>
     </form>
   </div>
 </main>
@@ -412,6 +424,7 @@
 
   const apptDate = document.getElementById('apptDate');
   const apptTime = document.getElementById('apptTime');
+  const dateMsg = document.getElementById('dateMsg');
   const today = new Date().toISOString().split('T')[0];
   apptDate.setAttribute('min', today);
 
@@ -447,7 +460,18 @@
       // if this fails, leave all slots selectable rather than blocking the form
     }
   }
-  apptDate.addEventListener('change', refreshAvailability);
+  apptDate.addEventListener('change', () => {
+    const day = new Date(apptDate.value + 'T00:00:00').getDay();
+    if (day === 0 || day === 6) {
+      dateMsg.textContent = "We're closed weekends — please choose a weekday (Mon–Fri).";
+      dateMsg.classList.add('show','err');
+      apptDate.value = '';
+      apptTime.innerHTML = '<option value="" disabled selected>Choose a time…</option><option value="08:00">08:00</option><option value="10:00">10:00</option><option value="12:00">12:00</option><option value="14:00">14:00</option><option value="16:00">16:00</option>';
+      return;
+    }
+    dateMsg.classList.remove('show','err');
+    refreshAvailability();
+  });
 
   const form = document.getElementById('bookingForm');
   const submitBtn = document.getElementById('submitBtn');
@@ -468,6 +492,36 @@
     submitBtn.disabled = true;
     submitBtn.textContent = 'Submitting…';
 
+    let photoUrl = null;
+    const photoFile = document.getElementById('photoInput').files[0];
+    if (photoFile) {
+      submitBtn.textContent = 'Uploading photo…';
+      const photoMsg = document.getElementById('photoMsg');
+      photoMsg.className = 'msg';
+      const path = `${Date.now()}-${photoFile.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+      try {
+        const uploadRes = await fetch(`${SUPABASE_URL}/storage/v1/object/booking-photos/${path}`, {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': photoFile.type
+          },
+          body: photoFile
+        });
+        if (uploadRes.ok) {
+          photoUrl = `${SUPABASE_URL}/storage/v1/object/public/booking-photos/${path}`;
+        } else {
+          photoMsg.textContent = "Couldn't upload the photo, but you can still submit your booking without it.";
+          photoMsg.classList.add('show','err');
+        }
+      } catch (err) {
+        photoMsg.textContent = "Couldn't upload the photo, but you can still submit your booking without it.";
+        photoMsg.classList.add('show','err');
+      }
+      submitBtn.textContent = 'Submitting…';
+    }
+
     const payload = {
       p_name: fd.get('name'),
       p_phone: fd.get('phone') || null,
@@ -479,7 +533,8 @@
       p_service_type: fd.get('service_type'),
       p_description: fd.get('description') || null,
       p_appointment_date: fd.get('appointment_date'),
-      p_appointment_time: fd.get('appointment_time')
+      p_appointment_time: fd.get('appointment_time'),
+      p_photo_url: photoUrl
     };
 
     try {
@@ -497,12 +552,14 @@
       const data = await res.json();
       const id = Array.isArray(data) ? data[0]?.appointment_id : data?.appointment_id;
 
-      msg.textContent = `Booking received (ref. #${String(id).padStart(5,'0')}) — we'll call to confirm your slot shortly.`;
+      msg.textContent = `✅ Booking received (ref. #${String(id).padStart(5,'0')}) — we'll call to confirm your slot shortly.`;
       msg.classList.add('show','ok');
       form.reset();
+      msg.scrollIntoView({ behavior: 'smooth', block: 'center' });
     } catch (err) {
       msg.textContent = "Couldn't lock in that booking. Check your details and try again, or call us directly.";
       msg.classList.add('show','err');
+      msg.scrollIntoView({ behavior: 'smooth', block: 'center' });
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Lock in booking';
