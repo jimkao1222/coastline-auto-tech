@@ -320,9 +320,7 @@
     <div class="docket-head">
       <div>
         <span class="label">Booking Docket</span>
-        <span class="no" id="docketNo">No. — assigned on submit</span>
       </div>
-      <div class="status">DRAFT</div>
     </div>
 
     <form id="bookingForm" novalidate>
@@ -356,6 +354,9 @@
         <label>Make, model &amp; year
           <input required name="vehicle" type="text" placeholder="e.g. 2022 Mercedes-Benz C63 Sedan" />
         </label>
+        <p style="font-size:12px;color:var(--ink-soft);margin:-6px 0 4px">
+          Not sure of your details? <a href="https://www.service.transport.qld.gov.au/checkrego/public/Welcome.xhtml?dswid=-6117" target="_blank" rel="noopener" style="color:var(--orange-dark)">Check your rego on Queensland Transport</a>
+        </p>
       </fieldset>
 
       <fieldset>
@@ -451,7 +452,6 @@
   const form = document.getElementById('bookingForm');
   const submitBtn = document.getElementById('submitBtn');
   const msg = document.getElementById('formMessage');
-  const docketNo = document.getElementById('docketNo');
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -497,8 +497,7 @@
       const data = await res.json();
       const id = Array.isArray(data) ? data[0]?.appointment_id : data?.appointment_id;
 
-      docketNo.textContent = `No. ${String(id).padStart(5,'0')}`;
-      msg.textContent = "Booking received — we'll call to confirm your slot shortly.";
+      msg.textContent = `Booking received (ref. #${String(id).padStart(5,'0')}) — we'll call to confirm your slot shortly.`;
       msg.classList.add('show','ok');
       form.reset();
     } catch (err) {
