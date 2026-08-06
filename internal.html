@@ -212,6 +212,7 @@
           <b>${a.customers?.name ?? 'Unknown'}</b> — ${a.vehicles?.vehicle ?? ''} (${a.vehicles?.rego ?? ''})
           <div class="meta">${a.appointment_date} · ${a.appointment_time} · ${a.service_type} · <span class="pill ${a.status}">${a.status}</span></div>
           ${a.description ? `<div class="desc">"${a.description}"</div>` : ''}
+          ${a.photo_url ? `<a href="${a.photo_url}" target="_blank" rel="noopener" style="font-size:11.5px;color:var(--blue);display:inline-block;margin-top:4px">📷 View photo</a>` : ''}
         </div>
         <div class="job-actions">
           ${a.status === 'pending' ? `<button class="action" data-confirm="${a.id}">Confirm</button>` : ''}
