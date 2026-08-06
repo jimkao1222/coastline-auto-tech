@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Reports — Coastline Auto Tech</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+<style>
+  :root{
+    --navy:#141414; --navy-light:#8A8378; --sidebar-hover:#262626;
+    --bg:#1A1A1A; --card:#242424; --border:#3A362E;
+    --ink:#EDEAE2; --ink-soft:#A39C8E;
+    --blue:#C9A227; --blue-dark:#A6841E;
+    --green:#4CAF7D; --amber:#D9A441; --coral:#D97D5D; --red:#E2726B;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;min-height:100vh;}
+
+  #loginScreen{max-width:380px;margin:100px auto;padding:0 20px;}
+  .login-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:30px 28px;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+  .login-card h1{font-size:20px;font-weight:600;margin:0 0 4px;color:var(--ink);}
+  .login-card p{font-size:13px;color:var(--ink-soft);margin:0 0 22px;}
+  label{display:block;font-size:12.5px;font-weight:500;color:var(--ink-soft);margin-bottom:14px;}
+  input{display:block;width:100%;margin-top:6px;padding:9px 11px;background:#1E1E1E;border:1px solid var(--border);border-radius:8px;font-size:14px;color:var(--ink);}
+  input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(201,162,39,.2);}
+  .btn-primary{font-weight:600;font-size:13.5px;color:#1A1A1A;background:var(--blue);border:none;border-radius:8px;padding:10px 16px;cursor:pointer;}
+  .msg{margin-top:12px;padding:10px 13px;border-radius:8px;font-size:13px;display:none;}
+  .msg.show{display:block;}
+  .msg.err{background:rgba(226,114,107,.15);color:var(--red);}
+
+  #appShell{display:none;min-height:100vh;}
+  .sidebar{width:72px;background:var(--navy);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:20px 0;gap:24px;flex-shrink:0;position:fixed;top:0;bottom:0;left:0;}
+  .sidebar .logo{font-size:24px;color:var(--blue);margin-bottom:8px;}
+  .sidebar a, .sidebar button{width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:10px;color:var(--navy-light);text-decoration:none;background:none;border:none;cursor:pointer;font-size:20px;}
+  .sidebar a:hover, .sidebar button:hover{background:var(--sidebar-hover);color:var(--ink);}
+  .sidebar a.active{background:var(--blue);color:#1A1A1A;}
+
+  main{margin-left:72px;padding:32px 40px 60px;max-width:920px;}
+  .page-title{font-size:20px;font-weight:600;margin:0 0 20px;color:var(--ink);}
+  .section-title{font-size:14px;font-weight:600;margin:28px 0 12px;color:var(--ink);}
+
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 22px;margin-bottom:16px;}
+
+  .gst-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;}
+  .gst-row .amt{font-size:22px;font-weight:600;color:var(--ink);}
+  .gst-row .thresh{font-size:12.5px;color:var(--ink-soft);}
+  .bar-track{height:10px;background:#1E1E1E;border-radius:6px;overflow:hidden;}
+  .bar-fill{height:100%;background:var(--blue);border-radius:6px;transition:width .3s;}
+  .bar-fill.warn{background:var(--amber);}
+  .bar-fill.danger{background:var(--red);}
+  .gst-note{font-size:12px;color:var(--ink-soft);margin-top:8px;}
+
+  .chart{display:flex;align-items:flex-end;gap:10px;height:160px;padding-top:10px;}
+  .chart-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;}
+  .chart-bar{width:100%;max-width:36px;background:var(--blue);border-radius:4px 4px 0 0;position:relative;}
+  .chart-bar.profit{background:var(--green);}
+  .chart-label{font-size:10.5px;color:var(--ink-soft);margin-top:8px;}
+  .chart-val{font-size:10px;color:var(--ink-soft);margin-bottom:4px;font-family:'IBM Plex Mono',monospace;}
+  .chart-legend{display:flex;gap:16px;font-size:12px;color:var(--ink-soft);margin-bottom:6px;}
+  .chart-legend span{display:inline-flex;align-items:center;gap:6px;}
+  .chart-legend .dot{width:9px;height:9px;border-radius:2px;}
+
+  .split-row{display:flex;gap:20px;}
+  .split-item{flex:1;text-align:center;padding:14px;background:#1E1E1E;border-radius:8px;}
+  .split-item .num{font-size:20px;font-weight:600;color:var(--ink);}
+  .split-item .label{font-size:11.5px;color:var(--ink-soft);margin-top:4px;}
+
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  th{text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;color:var(--ink-soft);padding:8px 0;border-bottom:1px solid var(--border);}
+  td{padding:9px 0;border-bottom:1px solid var(--border);color:var(--ink);}
+  td.num{font-family:'IBM Plex Mono',monospace;text-align:right;}
+  .empty{color:var(--ink-soft);font-size:13px;padding:10px 0;}
+
+  @media (max-width:700px){ main{padding:24px 18px;} .split-row{flex-direction:column;} }
+</style>
+</head>
+<body>
+
+<section id="loginScreen">
+  <div class="login-card">
+    <h1>Staff login</h1>
+    <p>Coastline Auto Tech — for workshop use only.</p>
+    <form id="loginForm">
+      <label>Email<input required type="email" id="email" autocomplete="username" /></label>
+      <label>Password<input required type="password" id="password" autocomplete="current-password" /></label>
+      <button type="submit" class="btn-primary" style="width:100%" id="loginBtn">Log in</button>
+      <div class="msg" id="loginMsg"></div>
+    </form>
+  </div>
+</section>
+
+<div id="appShell">
+  <nav class="sidebar">
+    <i class="ti ti-anchor logo"></i>
+    <a href="control.html" title="Home"><i class="ti ti-layout-dashboard"></i></a>
+    <a href="internal.html" title="Bookings and work orders"><i class="ti ti-tool"></i></a>
+    <a href="invoices.html" title="Invoices"><i class="ti ti-receipt-2"></i></a>
+    <a href="reports.html" class="active" title="Reports"><i class="ti ti-chart-bar"></i></a>
+    <a href="settings.html" title="Settings"><i class="ti ti-settings"></i></a>
+    <button id="logoutBtn" title="Log out"><i class="ti ti-logout"></i></button>
+  </nav>
+
+  <main>
+    <p class="page-title">Reports</p>
+
+    <div class="card">
+      <div class="gst-row">
+        <div>
+          <div class="amt" id="gstAmt">$0</div>
+          <div class="thresh">Trailing 12-month revenue · GST threshold is $75,000</div>
+        </div>
+        <div class="thresh" id="gstPct">0%</div>
+      </div>
+      <div class="bar-track"><div class="bar-fill" id="gstBar" style="width:0%"></div></div>
+      <div class="gst-note" id="gstNote"></div>
+    </div>
+
+    <p class="section-title">Monthly revenue &amp; profit (completed jobs)</p>
+    <div class="card">
+      <div class="chart-legend">
+        <span><i class="dot" style="background:var(--blue)"></i>Revenue</span>
+        <span><i class="dot" style="background:var(--green)"></i>Profit</span>
+      </div>
+      <div class="chart" id="monthlyChart"><p class="empty">Loading…</p></div>
+    </div>
+
+    <p class="section-title">Parts vs labour revenue</p>
+    <div class="card">
+      <div class="split-row" id="splitRow"><p class="empty">Loading…</p></div>
+    </div>
+
+    <p class="section-title">Top customers (by paid invoices)</p>
+    <div class="card">
+      <table>
+        <thead><tr><th>Customer</th><th class="num">Paid invoices</th><th class="num">Total spent</th></tr></thead>
+        <tbody id="topCustBody"><tr><td colspan="3" class="empty">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+  const SUPABASE_URL = "https://kjytblqvkwmyrudnksdp.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtqeXRibHF2a3dteXJ1ZG5rc2RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0OTEzMzcsImV4cCI6MjEwMTA2NzMzN30.4lONpoNVUzGQnf8ieBL8m6fa_ZmIaCIpNaVHEKOj3BI";
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const loginScreen = document.getElementById('loginScreen');
+  const appShell = document.getElementById('appShell');
+  const loginForm = document.getElementById('loginForm');
+  const loginBtn = document.getElementById('loginBtn');
+  const loginMsg = document.getElementById('loginMsg');
+
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    loginBtn.disabled = true; loginBtn.textContent = 'Logging in…';
+    loginMsg.className = 'msg';
+    const { error } = await supabase.auth.signInWithPassword({
+      email: document.getElementById('email').value,
+      password: document.getElementById('password').value
+    });
+    if (error) {
+      loginMsg.textContent = 'Wrong email or password.';
+      loginMsg.classList.add('show','err');
+      loginBtn.disabled = false; loginBtn.textContent = 'Log in';
+    }
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', async () => { await supabase.auth.signOut(); });
+
+  supabase.auth.onAuthStateChange((_e, session) => {
+    if (session) {
+      loginScreen.style.display = 'none';
+      appShell.style.display = 'block';
+      loadGstProgress();
+      loadMonthlyChart();
+      loadRevenueSplit();
+      loadTopCustomers();
+    } else {
+      loginScreen.style.display = 'block';
+      appShell.style.display = 'none';
+    }
+  });
+
+  async function loadGstProgress() {
+    const twelveMonthsAgo = new Date();
+    twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
+    const cutoff = twelveMonthsAgo.toISOString().split('T')[0];
+
+    const { data } = await supabase.from('invoices').select('total, invoice_date').gte('invoice_date', cutoff).neq('status', 'cancelled');
+    const total = (data || []).reduce((s, i) => s + Number(i.total), 0);
+    const pct = Math.min(100, (total / 75000) * 100);
+
+    document.getElementById('gstAmt').textContent = `$${total.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+    document.getElementById('gstPct').textContent = `${pct.toFixed(1)}%`;
+    const bar = document.getElementById('gstBar');
+    bar.style.width = `${pct}%`;
+    bar.classList.remove('warn', 'danger');
+
+    const note = document.getElementById('gstNote');
+    if (total >= 75000) {
+      bar.classList.add('danger');
+      note.textContent = "You're at or over the $75,000 GST threshold — you're required to register for GST within 21 days.";
+      note.style.color = 'var(--red)';
+    } else if (total >= 60000) {
+      bar.classList.add('warn');
+      note.textContent = "Getting close to the $75,000 GST threshold — worth keeping an eye on this.";
+      note.style.color = 'var(--amber)';
+    } else {
+      note.textContent = 'Comfortably under the GST registration threshold.';
+      note.style.color = 'var(--ink-soft)';
+    }
+  }
+
+  async function loadMonthlyChart() {
+    const { data, error } = await supabase.from('monthly_report').select('*').order('month', { ascending: false }).limit(6);
+    const el = document.getElementById('monthlyChart');
+    if (error || !data || !data.length) {
+      el.innerHTML = '<p class="empty">No completed jobs with items yet — this will fill in as you finish work orders.</p>';
+      return;
+    }
+    const rows = [...data].reverse();
+    const maxVal = Math.max(...rows.map(r => Math.max(Number(r.revenue), Number(r.profit))), 1);
+
+    el.innerHTML = rows.map(r => {
+      const revH = Math.max(4, (Number(r.revenue) / maxVal) * 130);
+      const profH = Math.max(4, (Number(r.profit) / maxVal) * 130);
+      const label = new Date(r.month).toLocaleDateString(undefined, { month: 'short', year: '2-digit' });
+      return `
+        <div class="chart-col">
+          <div style="display:flex;gap:3px;align-items:flex-end;height:130px">
+            <div class="chart-bar" style="height:${revH}px" title="Revenue $${Number(r.revenue).toFixed(0)}"></div>
+            <div class="chart-bar profit" style="height:${profH}px" title="Profit $${Number(r.profit).toFixed(0)}"></div>
+          </div>
+          <div class="chart-label">${label}</div>
+        </div>`;
+    }).join('');
+  }
+
+  async function loadRevenueSplit() {
+    const { data, error } = await supabase.from('revenue_split').select('*');
+    const el = document.getElementById('splitRow');
+    if (error || !data || !data.length) {
+      el.innerHTML = '<p class="empty">No completed jobs yet.</p>';
+      return;
+    }
+    el.innerHTML = data.map(d => `
+      <div class="split-item">
+        <div class="num">$${Number(d.revenue).toFixed(0)}</div>
+        <div class="label">${d.category}</div>
+      </div>`).join('');
+  }
+
+  async function loadTopCustomers() {
+    const { data } = await supabase.from('invoices').select('total, customers(name)').eq('status', 'paid');
+    const body = document.getElementById('topCustBody');
+    if (!data || !data.length) {
+      body.innerHTML = '<tr><td colspan="3" class="empty">No paid invoices yet.</td></tr>';
+      return;
+    }
+    const byCustomer = {};
+    data.forEach(i => {
+      const name = i.customers?.name ?? 'Unknown';
+      if (!byCustomer[name]) byCustomer[name] = { count: 0, total: 0 };
+      byCustomer[name].count += 1;
+      byCustomer[name].total += Number(i.total);
+    });
+    const sorted = Object.entries(byCustomer).sort((a, b) => b[1].total - a[1].total).slice(0, 10);
+    body.innerHTML = sorted.map(([name, v]) => `
+      <tr><td>${name}</td><td class="num">${v.count}</td><td class="num">$${v.total.toFixed(2)}</td></tr>
+    `).join('');
+  }
+</script>
+
+</body>
+</html>
