@@ -298,6 +298,7 @@
     *{transition:none !important;}
   }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body>
 
@@ -419,6 +420,11 @@
   // ------------------------------------------------------------------
   const SUPABASE_URL = "https://kjytblqvkwmyrudnksdp.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtqeXRibHF2a3dteXJ1ZG5rc2RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0OTEzMzcsImV4cCI6MjEwMTA2NzMzN30.4lONpoNVUzGQnf8ieBL8m6fa_ZmIaCIpNaVHEKOj3BI";
+
+  const EMAILJS_SERVICE_ID = "service_2h2lrc7";
+  const EMAILJS_TEMPLATE_ID = "template_44gwv8r";
+  const EMAILJS_PUBLIC_KEY = "iAPuvQyb6Pqgje4rw";
+  emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
   // ------------------------------------------------------------------
 
   const apptDate = document.getElementById('apptDate');
@@ -553,6 +559,19 @@
 
       msg.textContent = `✅ Booking received (ref. #${String(id).padStart(5,'0')}) — we'll call to confirm your slot shortly.`;
       msg.classList.add('show','ok');
+
+      emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+        customer_name: fd.get('name'),
+        customer_phone: fd.get('phone') || 'Not provided',
+        customer_email: fd.get('email') || 'Not provided',
+        vehicle: fd.get('vehicle'),
+        rego: fd.get('rego').toUpperCase(),
+        service_type: fd.get('service_type'),
+        appointment_date: fd.get('appointment_date'),
+        appointment_time: fd.get('appointment_time'),
+        description: fd.get('description') || 'None'
+      }).catch(() => { /* booking already saved — a failed notification email shouldn't alarm the customer */ });
+
       form.reset();
       msg.scrollIntoView({ behavior: 'smooth', block: 'center' });
     } catch (err) {
