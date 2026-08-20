@@ -8,13 +8,16 @@
 <meta property="og:title" content="Coastline Auto Tech — Book a Service" />
 <meta property="og:description" content="Gold Coast car servicing, diagnostics, and AC regas. One mechanic, straight answers, no surprises." />
 <meta property="og:type" content="website" />
+<meta name="color-scheme" content="light" />
 <link rel="icon" type="image/png" href="favicon.png" />
 <link rel="apple-touch-icon" href="favicon.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
   :root{
+    color-scheme: light;
     --navy-deep:#0B2436;
     --navy-mid:#123249;
     --steel:#54727F;
@@ -30,7 +33,7 @@
   }
 
   *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
+  html,body{margin:0;padding:0;color-scheme:light;}
   body{
     background:var(--paper);
     color:var(--ink);
@@ -40,7 +43,6 @@
 
   a{color:inherit;}
 
-  /* ---------- Header : coastline horizon ---------- */
   header.top{
     position:relative;
     background:linear-gradient(180deg,var(--navy-deep) 0%, var(--navy-mid) 65%, #2C5468 100%);
@@ -92,7 +94,6 @@
     text-transform:uppercase;
   }
 
-  /* ---------- Hero ---------- */
   .hero{
     max-width:760px;
     margin:0 auto;
@@ -123,7 +124,6 @@
     margin:0 auto;
   }
 
-  /* ---------- Docket card ---------- */
   main{
     max-width:640px;
     margin:38px auto 60px;
@@ -144,13 +144,8 @@
     border-bottom:1px dashed var(--paper-line);
   }
   .docket-head{
-    display:flex;
-    align-items:baseline;
-    justify-content:space-between;
     padding:20px 26px 14px;
     border-bottom:1px dashed var(--paper-line);
-    flex-wrap:wrap;
-    gap:8px;
   }
   .docket-head .label{
     font-family:'Oswald',sans-serif;
@@ -158,22 +153,6 @@
     letter-spacing:.1em;
     text-transform:uppercase;
     color:var(--navy-deep);
-  }
-  .docket-head .no{
-    display:block;
-    font-family:'IBM Plex Mono',monospace;
-    font-size:12px;
-    color:var(--ink-soft);
-    margin-top:2px;
-  }
-  .docket-head .status{
-    font-family:'IBM Plex Mono',monospace;
-    font-size:11px;
-    letter-spacing:.1em;
-    padding:4px 9px;
-    border:1px solid var(--steel);
-    color:var(--steel);
-    border-radius:20px;
   }
 
   form{padding:6px 26px 28px;}
@@ -222,7 +201,7 @@
     color:var(--ink);
   }
 
-  input[name="rego"], input[name="kms"], select[name="appointment_time"], .no{
+  input[name="rego"], input[name="kms"], select[name="appointment_time"]{
     font-family:'IBM Plex Mono',monospace;
   }
 
@@ -282,14 +261,6 @@
   .msg.ok{background:rgba(47,107,79,.12);color:var(--ok);border:2px solid var(--ok);font-size:15px;font-weight:600;padding:16px 18px;text-align:center;}
   .msg.err{background:rgba(174,50,38,.1);color:var(--warn);border:1px solid rgba(174,50,38,.35);}
 
-  footer{
-    text-align:center;
-    padding:26px 20px 40px;
-    font-family:'IBM Plex Mono',monospace;
-    font-size:12px;
-    color:var(--ink-soft);
-  }
-
   @media (max-width:560px){
     .row{grid-template-columns:1fr;}
   }
@@ -298,7 +269,6 @@
     *{transition:none !important;}
   }
 </style>
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body>
 
@@ -325,9 +295,7 @@
   <div class="docket">
     <div class="perf"></div>
     <div class="docket-head">
-      <div>
-        <span class="label">Booking Docket</span>
-      </div>
+      <span class="label">Booking Docket</span>
     </div>
 
     <form id="bookingForm" novalidate>
@@ -416,8 +384,6 @@
 
 <script>
   // ------------------------------------------------------------------
-  // CONFIG — fill these in from Supabase → Project Settings → API
-  // ------------------------------------------------------------------
   const SUPABASE_URL = "https://kjytblqvkwmyrudnksdp.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtqeXRibHF2a3dteXJ1ZG5rc2RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0OTEzMzcsImV4cCI6MjEwMTA2NzMzN30.4lONpoNVUzGQnf8ieBL8m6fa_ZmIaCIpNaVHEKOj3BI";
 
@@ -433,14 +399,22 @@
   const today = new Date().toISOString().split('T')[0];
   apptDate.setAttribute('min', today);
 
+  const WEEKDAY_SLOTS = ['08:00','10:00','12:00','14:00','16:00'];
+  const WEEKEND_SLOTS = ['10:00','12:00'];
+
+  function buildTimeOptions(slots) {
+    apptTime.innerHTML = '<option value="" disabled selected>Choose a time…</option>' +
+      slots.map(t => `<option value="${t}">${t}</option>`).join('');
+  }
+
   async function refreshAvailability() {
     const dateVal = apptDate.value;
-    Array.from(apptTime.options).forEach(opt => {
-      if (!opt.value) return;
-      opt.disabled = false;
-      opt.textContent = opt.value;
-    });
     if (!dateVal) return;
+
+    const day = new Date(dateVal + 'T00:00:00').getDay();
+    const isWeekend = (day === 0 || day === 6);
+    buildTimeOptions(isWeekend ? WEEKEND_SLOTS : WEEKDAY_SLOTS);
+    dateMsg.classList.remove('show','err');
 
     try {
       const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_booked_times`, {
@@ -455,6 +429,7 @@
       const booked = await res.json();
       const bookedTimes = (booked || []).map(b => b.appointment_time.slice(0,5));
       Array.from(apptTime.options).forEach(opt => {
+        if (!opt.value) return;
         if (bookedTimes.includes(opt.value)) {
           opt.disabled = true;
           opt.textContent = `${opt.value} — Booked`;
@@ -465,18 +440,8 @@
       // if this fails, leave all slots selectable rather than blocking the form
     }
   }
-  apptDate.addEventListener('change', () => {
-    const day = new Date(apptDate.value + 'T00:00:00').getDay();
-    if (day === 0 || day === 6) {
-      dateMsg.textContent = "We're closed weekends — please choose a weekday (Mon–Fri).";
-      dateMsg.classList.add('show','err');
-      apptDate.value = '';
-      apptTime.innerHTML = '<option value="" disabled selected>Choose a time…</option><option value="08:00">08:00</option><option value="10:00">10:00</option><option value="12:00">12:00</option><option value="14:00">14:00</option><option value="16:00">16:00</option>';
-      return;
-    }
-    dateMsg.classList.remove('show','err');
-    refreshAvailability();
-  });
+
+  apptDate.addEventListener('change', refreshAvailability);
 
   const form = document.getElementById('bookingForm');
   const submitBtn = document.getElementById('submitBtn');
@@ -583,9 +548,7 @@
       submitBtn.textContent = 'Lock in booking';
     }
   });
-</script>
 
-<script>
   window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
 </script>
 <script defer src="/_vercel/insights/script.js"></script>
