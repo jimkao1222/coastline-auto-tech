@@ -148,7 +148,6 @@
       <div class="doc-meta">
         <div><span class="k">Invoice No.</span><span class="v"><input id="invNo" /></span></div>
         <div><span class="k">Date</span><span class="v"><input id="invDate" type="date" /></span></div>
-        <div><span class="k">Due</span><span class="v"><input id="dueDate" type="date" /></span></div>
         <div><span class="k">Vehicle</span><span class="v"><input id="vVehicle" data-field="vehicle" /></span></div>
         <div><span class="k">VIN</span><span class="v"><input id="vVin" data-field="vin" /></span></div>
         <div><span class="k">Kms</span><span class="v"><input id="vKms" data-field="kms" type="number" /></span></div>
@@ -233,7 +232,6 @@
     if (!workOrderId) { document.getElementById('custName').textContent = 'No work order selected'; return; }
 
     document.getElementById('invDate').valueAsDate = new Date();
-    document.getElementById('dueDate').valueAsDate = new Date();
     const hasExisting = await loadExistingInvoice();
     if (!hasExisting) await suggestInvoiceNumber();
 
@@ -301,7 +299,6 @@
       existingInvoiceId = data[0].id;
       document.getElementById('invNo').value = data[0].invoice_number;
       document.getElementById('invDate').value = data[0].invoice_date;
-      if (data[0].due_date) document.getElementById('dueDate').value = data[0].due_date;
       document.getElementById('saveBtn').textContent = 'Update invoice record';
       return true;
     }
@@ -325,7 +322,6 @@
       customer_id: currentCustomerId,
       invoice_number: document.getElementById('invNo').value,
       invoice_date: document.getElementById('invDate').value,
-      due_date: document.getElementById('dueDate').value || null,
       subtotal: currentTotal,
       gst_amount: 0,
       total: currentTotal,
