@@ -28,6 +28,8 @@
   label{display:block;font-size:12.5px;font-weight:500;color:var(--ink-soft);margin-bottom:14px;}
   input,select,textarea{display:block;width:100%;margin-top:6px;padding:9px 11px;background:#1E1E1E;border:1px solid var(--border);border-radius:8px;font-family:'Inter',sans-serif;font-size:14px;color:var(--ink);}
   input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(201,162,39,.2);}
+  input.saved{background:rgba(76,175,125,.15);}
+  input.save-err{background:rgba(226,114,107,.15);}
   .btn-primary{font-weight:600;font-size:13.5px;color:#1A1A1A;background:var(--blue);border:none;border-radius:8px;padding:10px 16px;cursor:pointer;}
   .btn-primary:hover{background:var(--blue-dark);}
   .msg{margin-top:12px;padding:10px 13px;border-radius:8px;font-size:13px;display:none;}
@@ -56,6 +58,9 @@
   .status-row{padding:16px 24px;display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;border-bottom:1px solid var(--border);}
   .status-row label{margin:0;flex:1;min-width:160px;}
   .status-row select{margin-top:6px;}
+
+  .kms-row{padding:16px 24px;border-bottom:1px solid var(--border);display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;}
+  .kms-row label{margin:0;max-width:220px;}
 
   .section-title{font-size:11px;font-weight:600;padding:18px 24px 10px;text-transform:uppercase;letter-spacing:.03em;color:var(--ink-soft);}
 
@@ -130,6 +135,14 @@
         </div>
         <span class="pill" id="statusPill">—</span>
       </div>
+
+      <div class="kms-row no-print">
+        <label>Odometer at this visit, km
+          <input type="number" id="kmsAtService" placeholder="e.g. 88000" />
+        </label>
+        <div class="msg" id="kmsMsg" style="margin-top:0"></div>
+      </div>
+
       <div class="status-row no-print">
         <label>Status
           <select id="statusSelect">
@@ -231,6 +244,7 @@
 
   let partsCache = [];
   let ratesCache = [];
+  let currentVehicleId = null;
 
   supabase.auth.onAuthStateChange((_e, session) => {
     if (session) {
@@ -254,7 +268,7 @@
   async function loadWorkOrder() {
     const { data: wo, error } = await supabase
       .from('work_orders')
-      .select('*, customers(name, phone), vehicles(rego, vehicle, kms)')
+      .select('*, customers(name, phone), vehicles(id, rego, vehicle, kms)')
       .eq('id', workOrderId)
       .single();
 
@@ -263,11 +277,29 @@
       return;
     }
 
+    currentVehicleId = wo.vehicles?.id ?? null;
     document.getElementById('custName').textContent = wo.customers?.name ?? 'Unknown';
     document.getElementById('vehicleMeta').textContent =
       `${wo.vehicles?.vehicle ?? ''} · ${wo.vehicles?.rego ?? ''} · Work order #${wo.id}`;
     document.getElementById('statusPill').textContent = wo.status;
     document.getElementById('statusSelect').value = wo.status;
+
+    const kmsInput = document.getElementById('kmsAtService');
+    kmsInput.value = wo.kms_at_service ?? wo.vehicles?.kms ?? '';
+    kmsInput.dataset.original = kmsInput.value;
+    kmsInput.addEventListener('blur', async () => {
+      if (kmsInput.value === kmsInput.dataset.original) return;
+      const kmsMsg = document.getElementById('kmsMsg'); kmsMsg.className = 'msg';
+      const newKms = kmsInput.value ? parseInt(kmsInput.value, 10) : null;
+      const { error: woErr } = await supabase.from('work_orders').update({ kms_at_service: newKms }).eq('id', workOrderId);
+      if (woErr) { kmsInput.classList.add('save-err'); setTimeout(()=>kmsInput.classList.remove('save-err'),1200); return; }
+      if (currentVehicleId && newKms && newKms > (wo.vehicles?.kms ?? 0)) {
+        await supabase.from('vehicles').update({ kms: newKms }).eq('id', currentVehicleId);
+      }
+      kmsInput.dataset.original = kmsInput.value;
+      kmsInput.classList.add('saved');
+      setTimeout(()=>kmsInput.classList.remove('saved'),900);
+    });
 
     document.getElementById('updateStatusBtn').onclick = async () => {
       const newStatus = document.getElementById('statusSelect').value;
