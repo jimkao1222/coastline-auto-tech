@@ -62,10 +62,13 @@
   .bill-to .name{font-size:15px;font-weight:600;}
   .bill-to .addr{font-size:13px;color:var(--ink-soft);margin-top:2px;}
   .doc-meta{font-size:13px;}
-  .doc-meta div{display:flex;gap:16px;justify-content:flex-end;padding:2px 0;}
-  .doc-meta .k{color:var(--ink-soft);}
+  .doc-meta div{display:flex;gap:16px;justify-content:flex-end;align-items:center;padding:2px 0;}
+  .doc-meta .k{color:var(--ink-soft);white-space:nowrap;}
   .doc-meta .v{font-family:'IBM Plex Mono',monospace;min-width:140px;text-align:right;}
-  .doc-meta input{width:140px;text-align:right;padding:3px 6px;margin:0;font-family:'IBM Plex Mono',monospace;font-size:13px;}
+  .doc-meta input{width:150px;text-align:right;padding:4px 7px;margin:0;font-family:'IBM Plex Mono',monospace;font-size:13px;border-radius:2px;}
+  .doc-meta input:focus{outline:2px solid var(--orange);outline-offset:0;border-color:var(--orange);}
+  .doc-meta input.saved{background:rgba(47,107,79,.12);}
+  .doc-meta input.save-err{background:rgba(174,50,38,.12);}
 
   table{width:100%;border-collapse:collapse;margin-bottom:8px;}
   th{text-align:left;background:#F1EDE2;font-family:'Oswald',sans-serif;font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--navy-deep);padding:9px 12px;border:1px solid var(--paper-line);}
@@ -84,6 +87,7 @@
     .topbar, #loginScreen, .no-print{display:none !important;}
     #wrap{display:block !important;max-width:none;margin:0;padding:0;}
     .sheet{box-shadow:none;border:none;padding:0;}
+    .doc-meta input{border:none;padding:0;}
     @page{size:A4;margin:15mm;}
   }
   @media (max-width:600px){
@@ -142,10 +146,9 @@
       <div class="doc-meta">
         <div><span class="k">Invoice No.</span><span class="v"><input id="invNo" /></span></div>
         <div><span class="k">Date</span><span class="v"><input id="invDate" type="date" /></span></div>
-        <div id="metaYear" style="display:none"><span class="k">Vehicle Year</span><span class="v" id="vYear"></span></div>
-        <div><span class="k">Vehicle</span><span class="v" id="vVehicle"></span></div>
-        <div><span class="k">VIN</span><span class="v" id="vVin"></span></div>
-        <div><span class="k">Kms</span><span class="v" id="vKms"></span></div>
+        <div><span class="k">Vehicle</span><span class="v"><input id="vVehicle" data-field="vehicle" /></span></div>
+        <div><span class="k">VIN</span><span class="v"><input id="vVin" data-field="vin" /></span></div>
+        <div><span class="k">Kms</span><span class="v"><input id="vKms" data-field="kms" type="number" /></span></div>
       </div>
     </div>
 
@@ -203,6 +206,7 @@
   });
 
   let currentCustomerId = null;
+  let currentVehicleId = null;
   let currentTotal = 0;
   let existingInvoiceId = null;
 
@@ -231,27 +235,22 @@
 
     const { data: wo, error } = await supabase
       .from('work_orders')
-      .select('*, customers(id, name, address), vehicles(vehicle, vin, kms)')
+      .select('*, customers(id, name, address), vehicles(id, vehicle, vin, kms)')
       .eq('id', workOrderId)
       .single();
 
     if (error || !wo) { document.getElementById('custName').textContent = 'Work order not found'; return; }
 
     currentCustomerId = wo.customers?.id ?? null;
+    currentVehicleId = wo.vehicles?.id ?? null;
     document.getElementById('custName').textContent = wo.customers?.name ?? 'Unknown';
     document.getElementById('custAddr').textContent = wo.customers?.address ?? '';
 
-    const vehicleText = wo.vehicles?.vehicle ?? '';
-    const yearMatch = vehicleText.match(/^(\d{4})\s*(.*)/);
-    if (yearMatch) {
-      document.getElementById('metaYear').style.display = 'flex';
-      document.getElementById('vYear').textContent = yearMatch[1];
-      document.getElementById('vVehicle').textContent = yearMatch[2];
-    } else {
-      document.getElementById('vVehicle').textContent = vehicleText;
-    }
-    document.getElementById('vVin').textContent = wo.vehicles?.vin ?? '—';
-    document.getElementById('vKms').textContent = wo.vehicles?.kms ?? '—';
+    document.getElementById('vVehicle').value = wo.vehicles?.vehicle ?? '';
+    document.getElementById('vVin').value = wo.vehicles?.vin ?? '';
+    document.getElementById('vKms').value = wo.vehicles?.kms ?? '';
+
+    bindVehicleAutosave();
 
     if (wo.notes) document.getElementById('recs').value = wo.notes;
 
@@ -267,6 +266,29 @@
 
     currentTotal = (items || []).reduce((s, i) => s + Number(i.subtotal), 0);
     document.getElementById('totalAmt').textContent = `$${currentTotal.toFixed(2)}`;
+  }
+
+  function bindVehicleAutosave() {
+    ['vVehicle','vVin','vKms'].forEach(id => {
+      const el = document.getElementById(id);
+      el.dataset.original = el.value;
+      el.addEventListener('blur', async () => {
+        if (!currentVehicleId) return;
+        if (el.value === el.dataset.original) return;
+        const field = el.dataset.field;
+        const value = field === 'kms' ? (el.value ? parseInt(el.value, 10) : null) : (el.value || null);
+        const { error } = await supabase.from('vehicles').update({ [field]: value }).eq('id', currentVehicleId);
+        el.classList.remove('saved','save-err');
+        if (error) {
+          el.classList.add('save-err');
+          setTimeout(() => el.classList.remove('save-err'), 1200);
+          return;
+        }
+        el.dataset.original = el.value;
+        el.classList.add('saved');
+        setTimeout(() => el.classList.remove('saved'), 900);
+      });
+    });
   }
 
   async function loadExistingInvoice() {
