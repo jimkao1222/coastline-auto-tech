@@ -45,8 +45,8 @@
   main{margin-left:72px;padding:32px 40px 60px;max-width:900px;}
   .page-title{font-size:20px;font-weight:600;margin:0 0 20px;color:var(--ink);}
 
-  .tabs{display:flex;gap:8px;margin-bottom:20px;}
-  .tabs button{flex:1;font-size:13px;font-weight:500;padding:11px;border:1px solid var(--border);background:#1E1E1E;color:var(--ink-soft);cursor:pointer;border-radius:8px;}
+  .tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+  .tabs button{flex:1;min-width:110px;font-size:13px;font-weight:500;padding:11px;border:1px solid var(--border);background:#1E1E1E;color:var(--ink-soft);cursor:pointer;border-radius:8px;}
   .tabs button.active{background:var(--blue);border-color:var(--blue);color:#1A1A1A;}
 
   .panel{display:none;}
@@ -71,6 +71,8 @@
 
   .del-btn{color:var(--red);background:none;border:none;cursor:pointer;font-size:11.5px;text-decoration:underline;}
   .edit-btn{color:var(--blue);background:none;border:none;cursor:pointer;font-size:11.5px;text-decoration:underline;}
+  a.hist-link{color:var(--blue);font-size:11.5px;text-decoration:underline;}
+  .rowbtns{display:flex;gap:10px;align-items:center;}
 
   .add-form{padding:16px 20px 20px;border-top:1px solid var(--border);}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
@@ -357,15 +359,12 @@
   }
 
   document.getElementById('showArchived').addEventListener('change', loadCustomers);
-  document.getElementById('custSearch').addEventListener('input', filterCustomerRows);
-
-  function filterCustomerRows() {
+  document.getElementById('custSearch').addEventListener('input', () => {
     const q = document.getElementById('custSearch').value.trim().toLowerCase();
     document.querySelectorAll('#customersBody tr[data-row]').forEach(tr => {
-      const hay = tr.dataset.row.toLowerCase();
-      tr.style.display = hay.includes(q) ? '' : 'none';
+      tr.style.display = tr.dataset.row.toLowerCase().includes(q) ? '' : 'none';
     });
-  }
+  });
 
   document.getElementById('c_save').addEventListener('click', async () => {
     const msg = document.getElementById('c_msg'); msg.className = 'msg';
@@ -396,7 +395,7 @@
         <td class="editable" contenteditable="true" data-table="vehicles" data-id="${v.id}" data-field="vehicle" data-type="text">${v.vehicle}</td>
         <td class="num editable" contenteditable="true" data-table="vehicles" data-id="${v.id}" data-field="kms" data-type="number">${v.kms ?? ''}</td>
         <td class="editable" contenteditable="true" data-table="vehicles" data-id="${v.id}" data-field="vin" data-type="text">${v.vin ?? ''}</td>
-        <td><button class="del-btn" data-del="${v.id}">Delete</button></td>
+        <td><div class="rowbtns"><a class="hist-link" href="vehicle-history.html?id=${v.id}">History</a><button class="del-btn" data-del="${v.id}">Delete</button></div></td>
       </tr>`).join('') || '<tr><td colspan="6" style="color:var(--ink-soft)">No vehicles yet.</td></tr>';
 
     bindEditableCells(body);
