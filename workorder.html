@@ -154,6 +154,7 @@
           </select>
         </label>
         <button class="btn-primary" id="updateStatusBtn">Update</button>
+        <a class="btn-ghost" id="quoteLink" href="#">Quote</a>
         <a class="btn-ghost" id="invoiceLink" href="#">Invoice</a>
       </div>
 
@@ -308,6 +309,7 @@
     };
 
     document.getElementById('invoiceLink').href = `invoice.html?id=${workOrderId}`;
+    document.getElementById('quoteLink').href = `quote.html?id=${workOrderId}`;
 
     await loadItems();
   }
