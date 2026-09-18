@@ -62,6 +62,14 @@
   .kms-row{padding:16px 24px;border-bottom:1px solid var(--border);display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;}
   .kms-row label{margin:0;max-width:220px;}
 
+  .specs-row{padding:16px 24px;border-bottom:1px solid var(--border);}
+  .specs-row label{margin:0 0 6px;display:block;}
+  .specs-row textarea{width:100%;min-height:70px;margin-top:6px;padding:9px 11px;background:#1E1E1E;border:1px solid var(--border);border-radius:8px;font-family:'Inter',sans-serif;font-size:13.5px;color:var(--ink);resize:vertical;}
+  .specs-row textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(201,162,39,.2);}
+  .specs-row textarea.saved{background:rgba(76,175,125,.1);}
+  .specs-row textarea.save-err{background:rgba(226,114,107,.1);}
+  .specs-note{font-size:11.5px;color:var(--ink-soft);margin-top:6px;}
+
   .section-title{font-size:11px;font-weight:600;padding:18px 24px 10px;text-transform:uppercase;letter-spacing:.03em;color:var(--ink-soft);}
 
   table{width:100%;border-collapse:collapse;font-size:13.5px;}
@@ -141,6 +149,13 @@
           <input type="number" id="kmsAtService" placeholder="e.g. 88000" />
         </label>
         <div class="msg" id="kmsMsg" style="margin-top:0"></div>
+      </div>
+
+      <div class="specs-row no-print">
+        <label>Service specs for this vehicle <span style="opacity:.6;font-weight:400">(oil type &amp; capacity, filter numbers, etc. — look up once, saved for next time)</span>
+          <textarea id="serviceSpecs" placeholder="e.g. Engine oil: 5W-30, 4.2L · Oil filter: Z123 · Air filter: A456 · Cabin filter: C789"></textarea>
+        </label>
+        <div class="msg" id="specsMsg" style="margin-top:6px"></div>
       </div>
 
       <div class="status-row no-print">
@@ -269,7 +284,7 @@
   async function loadWorkOrder() {
     const { data: wo, error } = await supabase
       .from('work_orders')
-      .select('*, customers(name, phone), vehicles(id, rego, vehicle, kms)')
+      .select('*, customers(name, phone), vehicles(id, rego, vehicle, kms, service_specs)')
       .eq('id', workOrderId)
       .single();
 
@@ -284,6 +299,20 @@
       `${wo.vehicles?.vehicle ?? ''} · ${wo.vehicles?.rego ?? ''} · Work order #${wo.id}`;
     document.getElementById('statusPill').textContent = wo.status;
     document.getElementById('statusSelect').value = wo.status;
+
+    const specsInput = document.getElementById('serviceSpecs');
+    specsInput.value = wo.vehicles?.service_specs ?? '';
+    specsInput.dataset.original = specsInput.value;
+    specsInput.addEventListener('blur', async () => {
+      if (!currentVehicleId) return;
+      if (specsInput.value === specsInput.dataset.original) return;
+      const specsMsg = document.getElementById('specsMsg'); specsMsg.className = 'msg';
+      const { error: specErr } = await supabase.from('vehicles').update({ service_specs: specsInput.value || null }).eq('id', currentVehicleId);
+      if (specErr) { specsInput.classList.add('save-err'); setTimeout(()=>specsInput.classList.remove('save-err'),1200); return; }
+      specsInput.dataset.original = specsInput.value;
+      specsInput.classList.add('saved');
+      setTimeout(()=>specsInput.classList.remove('saved'),900);
+    });
 
     const kmsInput = document.getElementById('kmsAtService');
     kmsInput.value = wo.kms_at_service ?? wo.vehicles?.kms ?? '';
