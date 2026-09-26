@@ -70,6 +70,12 @@
   .specs-row textarea.save-err{background:rgba(226,114,107,.1);}
   .specs-note{font-size:11.5px;color:var(--ink-soft);margin-top:6px;}
 
+  .time-row{padding:16px 24px;border-bottom:1px solid var(--border);display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;}
+  .time-row label{margin:0;max-width:220px;}
+  .time-row .time-group{display:flex;gap:6px;align-items:flex-end;}
+  .time-row .now-btn{font-size:11px;font-weight:500;color:var(--ink-soft);background:#1E1E1E;border:1px solid var(--border);border-radius:8px;padding:9px 10px;cursor:pointer;white-space:nowrap;}
+  .time-row .now-btn:hover{border-color:var(--blue);color:var(--blue);}
+
   .section-title{font-size:11px;font-weight:600;padding:18px 24px 10px;text-transform:uppercase;letter-spacing:.03em;color:var(--ink-soft);}
 
   table{width:100%;border-collapse:collapse;font-size:13.5px;}
@@ -156,6 +162,22 @@
           <textarea id="serviceSpecs" placeholder="e.g. Engine oil: 5W-30, 4.2L · Oil filter: Z123 · Air filter: A456 · Cabin filter: C789"></textarea>
         </label>
         <div class="msg" id="specsMsg" style="margin-top:6px"></div>
+      </div>
+
+      <div class="time-row no-print">
+        <label>Job started
+          <div class="time-group">
+            <input type="datetime-local" id="startTime" />
+            <button type="button" class="now-btn" id="startNowBtn">Now</button>
+          </div>
+        </label>
+        <label>Job finished
+          <div class="time-group">
+            <input type="datetime-local" id="endTime" />
+            <button type="button" class="now-btn" id="endNowBtn">Now</button>
+          </div>
+        </label>
+        <div class="msg" id="timeMsg" style="margin-top:0"></div>
       </div>
 
       <div class="status-row no-print">
@@ -331,9 +353,51 @@
       setTimeout(()=>kmsInput.classList.remove('saved'),900);
     });
 
+    function toLocalInputValue(iso) {
+      if (!iso) return '';
+      const d = new Date(iso);
+      const pad = n => String(n).padStart(2, '0');
+      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+
+    const startInput = document.getElementById('startTime');
+    const endInput = document.getElementById('endTime');
+    const timeMsg = document.getElementById('timeMsg');
+    startInput.value = toLocalInputValue(wo.start_time);
+    endInput.value = toLocalInputValue(wo.end_time);
+    startInput.dataset.original = startInput.value;
+    endInput.dataset.original = endInput.value;
+
+    async function saveTimeField(input, column) {
+      timeMsg.className = 'msg';
+      const isoValue = input.value ? new Date(input.value).toISOString() : null;
+      const { error: tErr } = await supabase.from('work_orders').update({ [column]: isoValue }).eq('id', workOrderId);
+      if (tErr) { timeMsg.textContent = "Couldn't save."; timeMsg.classList.add('show','err'); return; }
+      input.dataset.original = input.value;
+    }
+
+    startInput.addEventListener('blur', () => { if (startInput.value !== startInput.dataset.original) saveTimeField(startInput, 'start_time'); });
+    endInput.addEventListener('blur', () => { if (endInput.value !== endInput.dataset.original) saveTimeField(endInput, 'end_time'); });
+
+    document.getElementById('startNowBtn').addEventListener('click', () => {
+      startInput.value = toLocalInputValue(new Date().toISOString());
+      saveTimeField(startInput, 'start_time');
+    });
+    document.getElementById('endNowBtn').addEventListener('click', () => {
+      endInput.value = toLocalInputValue(new Date().toISOString());
+      saveTimeField(endInput, 'end_time');
+    });
+
     document.getElementById('updateStatusBtn').onclick = async () => {
       const newStatus = document.getElementById('statusSelect').value;
-      await supabase.from('work_orders').update({ status: newStatus }).eq('id', workOrderId);
+      const updatePayload = { status: newStatus };
+      if (newStatus === 'completed' && !endInput.value) {
+        const nowIso = new Date().toISOString();
+        updatePayload.end_time = nowIso;
+        endInput.value = toLocalInputValue(nowIso);
+        endInput.dataset.original = endInput.value;
+      }
+      await supabase.from('work_orders').update(updatePayload).eq('id', workOrderId);
       document.getElementById('statusPill').textContent = newStatus;
     };
 
