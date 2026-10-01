@@ -217,6 +217,7 @@
         <div class="job-actions">
           ${a.status === 'pending' ? `<button class="action" data-confirm="${a.id}">Confirm</button>` : ''}
           <button class="action primary" data-start="${a.id}" data-customer="${a.customer_id}" data-vehicle="${a.vehicle_id}">Start work order</button>
+          <button class="del-btn" data-delappt="${a.id}" style="margin-left:4px">Delete</button>
         </div>
       </div>
     `).join('');
@@ -226,6 +227,13 @@
     });
     listEl.querySelectorAll('[data-start]').forEach(btn => {
       btn.addEventListener('click', () => startWorkOrder(btn.dataset.start, btn.dataset.customer, btn.dataset.vehicle));
+    });
+    listEl.querySelectorAll('[data-delappt]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Delete this booking? This cannot be undone. The customer and vehicle records will stay — only this booking request is removed.')) return;
+        await supabase.from('appointments').delete().eq('id', btn.dataset.delappt);
+        loadAppointments();
+      });
     });
   }
 
@@ -252,6 +260,15 @@
       loadWorkOrders();
     }
   }
+
+  document.getElementById('woSearch').addEventListener('input', () => {
+    const q = document.getElementById('woSearch').value.trim().toLowerCase();
+    document.querySelectorAll('#woList [data-row]').forEach(el => {
+      el.style.display = el.dataset.row.toLowerCase().includes(q) ? '' : 'none';
+    });
+  });
+
+  let allCustomers = [];
 
   async function loadWorkOrders() {
     const listEl = document.getElementById('woList');
@@ -298,15 +315,6 @@
       });
     });
   }
-
-  document.getElementById('woSearch').addEventListener('input', () => {
-    const q = document.getElementById('woSearch').value.trim().toLowerCase();
-    document.querySelectorAll('#woList [data-row]').forEach(el => {
-      el.style.display = el.dataset.row.toLowerCase().includes(q) ? '' : 'none';
-    });
-  });
-
-  let allCustomers = [];
 
   document.getElementById('toggleNewWoBtn').addEventListener('click', () => {
     const form = document.getElementById('newWoForm');
