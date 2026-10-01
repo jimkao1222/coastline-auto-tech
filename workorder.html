@@ -100,7 +100,7 @@
 
   @media print{
     body{background:#fff;color:#000;}
-    .sidebar, #loginScreen, .add-form, .status-row, .rm, .no-print{display:none !important;}
+    .sidebar, #loginScreen, .add-form, .status-row, .kms-row, .specs-row, .time-row, .rm, .no-print{display:none !important;}
     main{margin-left:0;padding:0;max-width:none;}
     .card{border:1px solid #ccc;}
     .docket-head b, .section-title, td, th, .sum-row.total{color:#000 !important;}
@@ -303,6 +303,13 @@
     await Promise.all([loadPartsDropdown(), loadRatesDropdown(), loadWorkOrder()]);
   }
 
+  function toLocalInputValue(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    const pad = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
   async function loadWorkOrder() {
     const { data: wo, error } = await supabase
       .from('work_orders')
@@ -353,13 +360,6 @@
       setTimeout(()=>kmsInput.classList.remove('saved'),900);
     });
 
-    function toLocalInputValue(iso) {
-      if (!iso) return '';
-      const d = new Date(iso);
-      const pad = n => String(n).padStart(2, '0');
-      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-    }
-
     const startInput = document.getElementById('startTime');
     const endInput = document.getElementById('endTime');
     const timeMsg = document.getElementById('timeMsg');
@@ -390,14 +390,16 @@
 
     document.getElementById('updateStatusBtn').onclick = async () => {
       const newStatus = document.getElementById('statusSelect').value;
-      const updatePayload = { status: newStatus };
-      if (newStatus === 'completed' && !endInput.value) {
-        const nowIso = new Date().toISOString();
-        updatePayload.end_time = nowIso;
-        endInput.value = toLocalInputValue(nowIso);
-        endInput.dataset.original = endInput.value;
+      if (newStatus === 'completed') {
+        if (!endInput.value) {
+          const nowIso = new Date().toISOString();
+          endInput.value = toLocalInputValue(nowIso);
+          endInput.dataset.original = endInput.value;
+        }
+        await supabase.rpc('complete_work_order', { p_work_order_id: workOrderId });
+      } else {
+        await supabase.from('work_orders').update({ status: newStatus }).eq('id', workOrderId);
       }
-      await supabase.from('work_orders').update(updatePayload).eq('id', workOrderId);
       document.getElementById('statusPill').textContent = newStatus;
     };
 
