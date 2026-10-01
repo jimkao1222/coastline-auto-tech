@@ -303,7 +303,7 @@
 
     listEl.querySelectorAll('[data-complete]').forEach(btn => {
       btn.addEventListener('click', async () => {
-        await supabase.from('work_orders').update({ status: 'completed', end_time: new Date().toISOString() }).eq('id', btn.dataset.complete);
+        await supabase.rpc('complete_work_order', { p_work_order_id: btn.dataset.complete });
         loadWorkOrders();
       });
     });
