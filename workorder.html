@@ -316,7 +316,7 @@
   async function loadWorkOrder() {
     const { data: wo, error } = await supabase
       .from('work_orders')
-      .select('*, customers(name, phone), vehicles(id, rego, vehicle, kms, service_specs)')
+      .select('*, customers(name, phone), vehicles(id, rego, rego_state, vehicle, kms, service_specs)')
       .eq('id', workOrderId)
       .single();
 
@@ -331,7 +331,7 @@
     vm.textContent = '';
     const mk = (cls, txt) => { const e = document.createElement('span'); if (cls) e.className = cls; e.textContent = txt; vm.appendChild(e); };
     mk('', wo.vehicles?.vehicle ?? '');
-    mk('rego', wo.vehicles?.rego ?? '');
+    mk('rego', `${wo.vehicles?.rego ?? ''} · ${wo.vehicles?.rego_state ?? ''}`);
     mk('wo', `Work order #${wo.id}`);
     document.getElementById('statusPill').textContent = wo.status;
     document.getElementById('statusSelect').value = wo.status;
