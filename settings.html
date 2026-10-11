@@ -391,7 +391,7 @@
     body.innerHTML = (data || []).map(v => `
       <tr data-row="${(v.customers?.name ?? '')} ${v.rego} ${v.rego_state ?? ''} ${v.vehicle} ${v.vin ?? ''}">
         <td>${v.customers?.name ?? 'Unknown'}</td>
-        <td class="editable" contenteditable="true" data-table="vehicles" data-id="${v.id}" data-field="rego_state" data-type="text">${v.rego_state ?? 'QLD'}</td>
+        <td class="editable" contenteditable="true" data-table="vehicles" data-id="${v.id}" data-field="rego_state" data-type="text" style="${(v.rego_state ?? 'QLD') !== 'QLD' ? 'color:#D9A441;font-weight:700' : ''}">${v.rego_state ?? 'QLD'}</td>
         <td class="editable" contenteditable="true" data-table="vehicles" data-id="${v.id}" data-field="rego" data-type="text">${v.rego}</td>
         <td class="editable" contenteditable="true" data-table="vehicles" data-id="${v.id}" data-field="vehicle" data-type="text">${v.vehicle}</td>
         <td class="num editable" contenteditable="true" data-table="vehicles" data-id="${v.id}" data-field="kms" data-type="number">${v.kms ?? ''}</td>
