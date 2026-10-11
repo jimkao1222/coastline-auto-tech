@@ -147,7 +147,7 @@
 
     const { data: veh } = await supabase.from('vehicles').select('*, customers(name)').eq('id', vehicleId).single();
     if (veh) {
-      document.getElementById('vehicleTitle').textContent = `${veh.vehicle} — ${veh.rego}`;
+      document.getElementById('vehicleTitle').textContent = `${veh.vehicle} — ${veh.rego} (${veh.rego_state ?? ''})`;
       document.getElementById('vehicleSub').textContent = `Owner: ${veh.customers?.name ?? 'Unknown'} · Current odometer: ${veh.kms ?? '—'} km · VIN: ${veh.vin ?? '—'}`;
     }
 
