@@ -132,7 +132,7 @@
           </div>
           <label>Address (optional)<input id="newCustAddr" /></label>
           <div class="row2">
-            <label>Rego<input id="newVehRego" style="text-transform:uppercase" /></label>
+            <label>Rego<span style="display:flex;gap:8px"><select id="newVehState" style="flex:0 0 84px"><option>QLD</option><option>NSW</option><option>VIC</option><option>SA</option><option>WA</option><option>TAS</option><option>NT</option><option>ACT</option></select><input id="newVehRego" style="text-transform:uppercase;flex:1;min-width:0" /></span></label>
             <label>Odometer, km (optional)<input id="newVehKms" type="number" /></label>
           </div>
           <label>Make, model &amp; year<input id="newVehVehicle" placeholder="e.g. 2018 Toyota Hilux Ute" /></label>
@@ -193,7 +193,7 @@
     const listEl = document.getElementById('apptList');
     const { data, error } = await supabase
       .from('appointments')
-      .select('*, customers(name, phone), vehicles(rego, vehicle)')
+      .select('*, customers(name, phone), vehicles(rego, rego_state, vehicle)')
       .in('status', ['pending', 'confirmed'])
       .order('appointment_date', { ascending: true });
 
@@ -209,7 +209,7 @@
     listEl.innerHTML = data.map(a => `
       <div class="card job-card" data-id="${a.id}">
         <div class="job-info">
-          <b>${a.customers?.name ?? 'Unknown'}</b> — ${a.vehicles?.vehicle ?? ''} (${a.vehicles?.rego ?? ''})
+          <b>${a.customers?.name ?? 'Unknown'}</b> — ${a.vehicles?.vehicle ?? ''} (${a.vehicles?.rego ?? ''} ${a.vehicles?.rego_state ?? ''})
           <div class="meta">${a.appointment_date} · ${a.appointment_time} · ${a.service_type} · <span class="pill ${a.status}">${a.status}</span></div>
           ${a.description ? `<div class="desc">"${a.description}"</div>` : ''}
           ${a.photo_url ? `<a href="${a.photo_url}" target="_blank" rel="noopener" style="font-size:11.5px;color:var(--blue);display:inline-block;margin-top:4px">📷 View photo</a>` : ''}
@@ -274,7 +274,7 @@
     const listEl = document.getElementById('woList');
     const { data, error } = await supabase
       .from('work_orders')
-      .select('*, customers(name, phone), vehicles(rego, vehicle)')
+      .select('*, customers(name, phone), vehicles(rego, rego_state, vehicle)')
       .order('created_at', { ascending: false })
       .limit(30);
 
@@ -290,7 +290,7 @@
     listEl.innerHTML = data.map(w => `
       <div class="card job-card" data-row="${w.customers?.name ?? ''} ${w.vehicles?.rego ?? ''} ${w.vehicles?.vehicle ?? ''}">
         <div class="job-info">
-          <b>${w.customers?.name ?? 'Unknown'}</b> — ${w.vehicles?.vehicle ?? ''} (${w.vehicles?.rego ?? ''})
+          <b>${w.customers?.name ?? 'Unknown'}</b> — ${w.vehicles?.vehicle ?? ''} (${w.vehicles?.rego ?? ''} ${w.vehicles?.rego_state ?? ''})
           <div class="meta">Work order #${w.id} · <span class="pill ${w.status}">${w.status}</span></div>
         </div>
         <div class="job-actions">
@@ -340,13 +340,13 @@
     const vSel = document.getElementById('existVehicleSel');
     vSel.innerHTML = '<option value="">Loading…</option>';
     if (!e.target.value) { vSel.innerHTML = '<option value="">Choose a vehicle…</option>'; return; }
-    const { data } = await supabase.from('vehicles').select('id, vehicle, rego').eq('customer_id', e.target.value).order('vehicle');
+    const { data } = await supabase.from('vehicles').select('id, vehicle, rego, rego_state').eq('customer_id', e.target.value).order('vehicle');
     if (!data || !data.length) {
       vSel.innerHTML = '<option value="">No vehicles on file for this customer</option>';
       return;
     }
     vSel.innerHTML = '<option value="">Choose a vehicle…</option>' +
-      data.map(v => `<option value="${v.id}">${v.vehicle} (${v.rego})</option>`).join('');
+      data.map(v => `<option value="${v.id}">${v.vehicle} (${v.rego} ${v.rego_state})</option>`).join('');
   });
 
   document.getElementById('createWoBtn').addEventListener('click', async () => {
@@ -380,7 +380,7 @@
 
       const kmsVal = document.getElementById('newVehKms').value;
       const { data: veh, error: vehErr } = await supabase.from('vehicles').insert({
-        customer_id: customerId, rego: rego.toUpperCase(), vehicle: vehicleText,
+        customer_id: customerId, rego: rego.toUpperCase(), rego_state: document.getElementById('newVehState').value, vehicle: vehicleText,
         kms: kmsVal ? parseInt(kmsVal, 10) : null
       }).select('id').single();
       if (vehErr) { msg.textContent = vehErr.message; msg.classList.add('show','err'); return; }
