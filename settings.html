@@ -149,14 +149,14 @@
         <div class="card-head"><h3>Vehicles</h3></div>
         <div style="padding:12px 20px 0"><input id="vehSearch" placeholder="Search by rego, vehicle, or owner…" /></div>
         <table>
-          <thead><tr><th>Owner</th><th>Rego</th><th>Vehicle</th><th class="num">Kms</th><th>VIN</th><th></th></tr></thead>
+          <thead><tr><th>Owner</th><th>State</th><th>Rego</th><th>Vehicle</th><th class="num">Kms</th><th>VIN</th><th></th></tr></thead>
           <tbody id="vehiclesBody"></tbody>
         </table>
         <div class="add-form">
           <h3 style="font-size:13px;margin:0 0 12px">Add new vehicle</h3>
           <label>Owner<select id="v_customer"></select></label>
           <div class="row3">
-            <label>Rego<input id="v_rego" style="text-transform:uppercase" /></label>
+            <label>Rego<span style="display:flex;gap:8px"><select id="v_state" style="flex:0 0 84px"><option>QLD</option><option>NSW</option><option>VIC</option><option>SA</option><option>WA</option><option>TAS</option><option>NT</option><option>ACT</option></select><input id="v_rego" style="text-transform:uppercase;flex:1;min-width:0" /></span></label>
             <label>Kms<input id="v_kms" type="number" /></label>
             <label>VIN (optional)<input id="v_vin" /></label>
           </div>
@@ -389,14 +389,15 @@
     const { data } = await supabase.from('vehicles').select('*, customers(name)').order('vehicle');
     const body = document.getElementById('vehiclesBody');
     body.innerHTML = (data || []).map(v => `
-      <tr data-row="${(v.customers?.name ?? '')} ${v.rego} ${v.vehicle} ${v.vin ?? ''}">
+      <tr data-row="${(v.customers?.name ?? '')} ${v.rego} ${v.rego_state ?? ''} ${v.vehicle} ${v.vin ?? ''}">
         <td>${v.customers?.name ?? 'Unknown'}</td>
+        <td class="editable" contenteditable="true" data-table="vehicles" data-id="${v.id}" data-field="rego_state" data-type="text">${v.rego_state ?? 'QLD'}</td>
         <td class="editable" contenteditable="true" data-table="vehicles" data-id="${v.id}" data-field="rego" data-type="text">${v.rego}</td>
         <td class="editable" contenteditable="true" data-table="vehicles" data-id="${v.id}" data-field="vehicle" data-type="text">${v.vehicle}</td>
         <td class="num editable" contenteditable="true" data-table="vehicles" data-id="${v.id}" data-field="kms" data-type="number">${v.kms ?? ''}</td>
         <td class="editable" contenteditable="true" data-table="vehicles" data-id="${v.id}" data-field="vin" data-type="text">${v.vin ?? ''}</td>
         <td><div class="rowbtns"><a class="hist-link" href="vehicle-history.html?id=${v.id}">History</a><button class="del-btn" data-del="${v.id}">Delete</button></div></td>
-      </tr>`).join('') || '<tr><td colspan="6" style="color:var(--ink-soft)">No vehicles yet.</td></tr>';
+      </tr>`).join('') || '<tr><td colspan="7" style="color:var(--ink-soft)">No vehicles yet.</td></tr>';
 
     bindEditableCells(body);
     body.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', async () => {
@@ -430,7 +431,7 @@
 
     const kmsVal = document.getElementById('v_kms').value;
     const { error } = await supabase.from('vehicles').insert({
-      customer_id: customerId, rego: rego.toUpperCase(), vehicle: vehicleText,
+      customer_id: customerId, rego: rego.toUpperCase(), rego_state: document.getElementById('v_state').value, vehicle: vehicleText,
       vin: document.getElementById('v_vin').value || null,
       kms: kmsVal ? parseInt(kmsVal, 10) : null
     });
