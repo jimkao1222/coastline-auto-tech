@@ -201,7 +201,7 @@
     color:var(--ink);
   }
 
-  input[name="rego"], input[name="kms"], select[name="appointment_time"]{
+  input[name="rego"], input[name="kms"], select[name="rego_state"], select[name="appointment_time"]{
     font-family:'IBM Plex Mono',monospace;
   }
 
@@ -355,7 +355,7 @@
         <legend>Vehicle</legend>
         <div class="row">
           <label>Rego
-            <input required name="rego" type="text" style="text-transform:uppercase" />
+            <span style="display:flex;gap:8px"><select name="rego_state" style="flex:0 0 84px" aria-label="State"><option>QLD</option><option>NSW</option><option>VIC</option><option>SA</option><option>WA</option><option>TAS</option><option>NT</option><option>ACT</option></select><input required name="rego" type="text" style="text-transform:uppercase;flex:1;min-width:0" /></span>
           </label>
           <label>Odometer, km <span style="opacity:.6">(optional)</span>
             <input name="kms" type="number" min="0" />
@@ -543,6 +543,7 @@
       p_email: fd.get('email') || null,
       p_address: null,
       p_rego: fd.get('rego').toUpperCase(),
+      p_rego_state: fd.get('rego_state') || 'QLD',
       p_vehicle: fd.get('vehicle'),
       p_kms: fd.get('kms') ? parseInt(fd.get('kms'), 10) : null,
       p_service_type: fd.get('service_type'),
@@ -575,7 +576,7 @@
         customer_phone: fd.get('phone') || 'Not provided',
         customer_email: fd.get('email') || 'Not provided',
         vehicle: fd.get('vehicle'),
-        rego: fd.get('rego').toUpperCase(),
+        rego: fd.get('rego').toUpperCase() + ' (' + (fd.get('rego_state') || 'QLD') + ')',
         service_type: fd.get('service_type'),
         appointment_date: fd.get('appointment_date'),
         appointment_time: fd.get('appointment_time'),
