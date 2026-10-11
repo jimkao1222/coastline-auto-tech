@@ -219,14 +219,14 @@
 
     const { data: wo, error } = await supabase
       .from('work_orders')
-      .select('*, customers(name), vehicles(vehicle, rego)')
+      .select('*, customers(name), vehicles(vehicle, rego, rego_state)')
       .eq('id', workOrderId)
       .single();
 
     if (error || !wo) { document.getElementById('custName').textContent = 'Work order not found'; return; }
 
     document.getElementById('custName').textContent = wo.customers?.name ?? 'Unknown';
-    document.getElementById('vehicleInfo').textContent = `${wo.vehicles?.vehicle ?? ''} · ${wo.vehicles?.rego ?? ''}`;
+    document.getElementById('vehicleInfo').textContent = `${wo.vehicles?.vehicle ?? ''} · ${wo.vehicles?.rego ?? ''} (${wo.vehicles?.rego_state ?? ''})`;
 
     const { data: items } = await supabase.from('work_order_items').select('*').eq('work_order_id', workOrderId).order('id');
     const body = document.getElementById('itemsBody');
